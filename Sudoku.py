@@ -1,4 +1,4 @@
-from itertools import combinations
+import itertools
 import copy
 
 def solve(Puzzle):
@@ -15,6 +15,7 @@ def solve(Puzzle):
         Puzzle.resetLocks(temp)
         iterations += 1
         if Puzzle.stuck(temp):
+            Puzzle.displayAll()
             print("Using some strategies")
             Puzzle = strategies(Puzzle)
             if Puzzle.stuck(temp):
@@ -77,6 +78,34 @@ def strategies(Puzzle):
     Puzzle.jellyFishUtil()
     if not Puzzle.stuck(temp):
         print("JellyFish Worked")
+        return Puzzle
+    Puzzle.uniqueRectangleUtil()
+    if not Puzzle.stuck(temp):
+        print("Unique Rectangles Worked")
+        return Puzzle
+    Puzzle.tridagonUtil()
+    if not Puzzle.stuck(temp):
+        print("Tridagon Worked")
+        return Puzzle
+    Puzzle.fireworkUtil()
+    if not Puzzle.stuck(temp):
+        print("Firework Worked")
+        return Puzzle
+    Puzzle.twinXYChains()
+    if not Puzzle.stuck(temp):
+        print("Twin XY Chains Worked")
+        return Puzzle
+    Puzzle.SKLoops()
+    if not Puzzle.stuck(temp):
+        print("SK Loops Worked")
+        return Puzzle
+    Puzzle.extUniqueRectanglesUtil()
+    if not Puzzle.stuck(temp):
+        print("Extended Unique Rectangles Worked")
+        return Puzzle
+    Puzzle.hiddenUniqueRectanglesUtil()
+    if not Puzzle.stuck(temp):
+        print("Hidden Unique Rectangles Worked")
         return Puzzle
     # Puzzle.skyscraperUtil()
     # if not Puzzle.stuck(temp):
@@ -357,6 +386,19 @@ class Puzzle:
                 if not self.layout[i][j].equals(temp.layout[i][j]) or not self.softboxlocked[i][j] == temp.softboxlocked[i][j] or not self.softlinelockedx[i][j] == temp.softlinelockedx[i][j] or not self.softlinelockedy[i][j] == temp.softlinelockedy[i][j]:
                     stuckFlag = False
         return stuckFlag
+        
+    def differenceCount(self, origCopy):
+        hardCount = 0 
+        softCount = 0
+        for i in range(9):
+            for j in range(9):
+                if origCopy.layout[i][j].val == 0 and self.layout[i][j].val == 0:
+                    tempSet1 = set(origCopy.layout[i][j].note) - {0}
+                    tempSet2 = set(self.layout[i][j].note) - {0}
+                    softCount += len(tempSet1) - len(tempSet2)
+                elif origCopy.layout[i][j].val == 0 and self.layout[i][j].val != 0:
+                    hardCount += 1
+        return hardCount, softCount
 
     # cleanup function "cleans up" the board after a value gets changed based on notes
     # function calls itself if a change gets made, which restarts the function
@@ -449,27 +491,35 @@ class Puzzle:
                                     elif self.inCol(tempCoords):
                                         self.subUpdateNotes('col', tempCoords, tempVal)
                     elif size == len(tempSet) == 3:
-                        goodcheck, coordList, masterSet = self.loopCheck3(False, [(i,j)], tempSet, 0)
-                        if goodcheck:
-                            # print(f"box {len(coordList)} 3: {masterSet} at locs {coordList}")
-                            self.subUpdateNotes('box', coordList, masterSet)
-                            for a, b in coordList:
+                        lockList = [(i, j)]
+                        for a in range(rowOffset, rowOffset + 3):
+                            for b in range(colOffset, colOffset + 3):
+                                if (a, b) == (i, j) or self.layout[a][b].val != 0:
+                                    continue
+                                tempSet2 = set(self.layout[a][b].note)
+                                tempSet2.discard(0)
+                                if tempSet == tempSet2:
+                                    lockList.append((a, b))
+                        if len(lockList) == 3:
+                            masterSet = tempSet
+                            self.subUpdateNotes('box', lockList, masterSet)
+                            for a, b in lockList:
                                 self.softboxlocked[a][b] = True
-                            if len(coordList) == 3:
-                                if self.inRow(coordList):
-                                    self.subUpdateNotes('row', coordList, masterSet)
-                                if self.inCol(coordList):
-                                    self.subUpdateNotes('col', coordList, masterSet)
-                            for val in masterSet:
-                                tempVal = {val}
-                                tempCoords = []
+                            if self.inRow(lockList):
+                                self.subUpdateNotes('row', lockList, masterSet)
+                            elif self.inCol(lockList):
+                                self.subUpdateNotes('col', lockList, masterSet)
+                        else:
+                            goodcheck, coordList, masterSet = self.loopCheck3(False, [(i, j)], tempSet, 0)
+                            if goodcheck:
+                                self.subUpdateNotes('box', coordList, masterSet)
                                 for a, b in coordList:
-                                    if val in self.layout[a][b].note:
-                                        tempCoords += [(a, b)]
-                                if self.inRow(tempCoords):
-                                    self.subUpdateNotes('row', tempCoords, tempVal)
-                                elif self.inCol(tempCoords):
-                                    self.subUpdateNotes('col', tempCoords, tempVal)
+                                    self.softboxlocked[a][b] = True
+                                if len(coordList) == 3:
+                                    if self.inRow(coordList):
+                                        self.subUpdateNotes('row', coordList, masterSet)
+                                    elif self.inCol(coordList):
+                                        self.subUpdateNotes('col', coordList, masterSet)
                     elif size == len(tempSet) == 4:
                         goodcheck, coordList, masterSet = self.loopCheck3(False, [(i,j)], tempSet, 0)
                         if goodcheck:
@@ -970,202 +1020,207 @@ class Puzzle:
     # ********************************************************************************************************************
     # utility function for xwing searches
     def xWing(self):
-        temp = copy.deepcopy(self)
-        for i in range(8):
-            for j in range(8):
-                if self.layout[i][j].val != 0:
-                    continue
-                for val in self.layout[i][j].note:
-                    self.squareFind((i,j), val)
-                    if not temp.stuck(self):
-                        # print(i, j, val)
-                        return
+        tempCopy = copy.deepcopy(self)
+        valsLeft = set()
+        for i in range(9):
+            for j in range(9):
+                valsLeft = valsLeft.union(set(self.layout[i][j].note))
+        valsLeft.discard(0)
+        # print(valsLeft)
+        for val in valsLeft:
+            self.squareFind(val, tempCopy)
+            if not self.stuck(tempCopy):
+                return
+
     # searches for xwings and updates accordingly
     # an x wing is an instance where 2 rows or columns have only 2 notes for the same value
     # if they form a square, the respective column or row's notes can remove the value that forms the square
-    def squareFind(self, coords, val):
-        row, col = coords
-        goodSquare = []
-        temp = [val]
-        if self.softlinelockedx[row][col]:
-            for j in range(col + 1, 9):
-                if self.layout[row][j].val != 0:
-                    continue
-                if val in self.layout[row][j].note:
-                    if self.singleRowCheck([(row, col), (row, j)], temp):
-                        col2 = j
-                        goodSquare = [(row,col), (row,j)]
-                        break
-            if len(goodSquare) == 2:
-                for i in range(9):
-                    if i == row:
+    def squareFind(self, val, tempCopy):
+        # creates a dictionary with key row index to a set of columns where val appears
+        rowSet = {r: {c for c in range(9) if val in self.layout[r][c].note} for r in range(9) if any(val in self.layout[r][c].note for c in range(9))}
+        for i in rowSet:
+            # makes sure current rowSet is 2 length
+            if len(rowSet[i]) == 2:
+                for j in rowSet:
+                    if i == j:
                         continue
-                    if val in self.layout[i][col].note and val in self.layout[i][col2].note:
-                        if self.singleRowCheck([(i, col), (i, col2)], temp):
-                            goodSquare += [(i,col), (i, col2)]
-                            break
-                if len(goodSquare) == 4:
-                    # print(f"Erasing {val} from cols {goodSquare[0][1]} & {goodSquare[1][1]}")
-                    self.subUpdateNotes('col', [goodSquare[0], goodSquare[2]], temp)
-                    self.subUpdateNotes('col', [goodSquare[1], goodSquare[3]], temp)
-        elif self.softlinelockedy[row][col]:
-            for i in range(row + 1, 9):
-                if val in self.layout[i][col].note:
-                    if self.singleColCheck([(row, col), (i, col)], temp):
-                        row2 = i
-                        goodSquare = [(row, col), (i, col)]
-                        break
-            if len(goodSquare) == 2:
-                for j in range(9):
-                    if j == col:
+                    # makes sure rowset[j] is length 2 and is equivalent to rowset[i]
+                    if len(rowSet[j]) == 2 and rowSet[i] == rowSet[j]:
+                        for c in rowSet[i]:
+                            self.subUpdateNotes('col', [(i, c), (j, c)], {val})
+                        if not self.stuck(tempCopy):
+                            print(f"X-Wing removed {val} in columns {rowSet[i]}")
+                            return
+        colSet = {c: {r for r in range(9) if val in self.layout[r][c].note} for c in range(9) if any(val in self.layout[r][c].note for r in range(9))}
+        for i in colSet:
+            if len(colSet[i]) == 2:
+                for j in colSet:
+                    if i == j:
                         continue
-                    if val in self.layout[row][j].note and val in self.layout[row2][j].note:
-                        if self.singleColCheck([(row, j), (row2, j)], temp):
-                            goodSquare += [(row,j), (row2, j)]
-                            break
-                if len(goodSquare) == 4:
-                    # print(f"Erasing {val} from rows {goodSquare[0][0]} & {goodSquare[1][0]}")
-                    self.subUpdateNotes('row', [goodSquare[0], goodSquare[2]], temp)
-                    self.subUpdateNotes('row', [goodSquare[1], goodSquare[3]], temp)
+                    if len(colSet[j]) == 2 and colSet[i] == colSet[j]:
+                        for r in colSet[i]:
+                            self.subUpdateNotes('row', [(r, i), (r, j)], {val})
+                        if not self.stuck(tempCopy):
+                            print(f"X-Wing removed {val} in rows {colSet[i]}")
+                            return
+        
     # ********************************************************************************************************************
     # Performs chute remote pairs strategy & updates accordingly, "naked" pairs which exist in different rows and columns (within square sight of a node)
     def chuteRemotePairs(self):
         tempCopy = copy.deepcopy(self)
-        for i in range(9):
-            for j in range(9):
-                # if change is made, teminate function
-                if not tempCopy.stuck(self):
-                    # print("col change made")
-                    return
-                # only check (i,j) if it fulfills potential remote pair parameters
-                if self.layout[i][j].val != 0:
-                    continue
-                tempSet = set(self.layout[i][j].note)
-                tempSet.discard(0)
-                remotePair = []
-                if len(tempSet) != 2:
-                    continue
-                rowOffset = (i//3) * 3
-                colOffset = (j//3) * 3
-                # checks horizontal chute for remote pair (avoiding current box and row)
-                for a in range(rowOffset, rowOffset + 3):
-                    if a == i:
-                        continue
-                    # avoids checking the columns of the current column's box
-                    for b in range(9):
-                        if colOffset <= b < colOffset + 3 or self.layout[a][b].val != 0:
-                            continue
-                        temp = set(self.layout[a][b].note)
-                        temp.discard(0)
-                        if tempSet == temp:
-                            remotePair = [(i,j),(a,b)]
-                # found remote pair in vertical chute
-                if len(remotePair) == 2:
-                    # print(f"Row Remote Pair: {remotePair}")
-                    x,y = remotePair[1]
-                    colOffset2 = (y//3) * 3
+        remaining = {v for r in range(9) for c in range(9) for v in self.layout[r][c].note if v != 0}
+        for combo in itertools.combinations(remaining, 2):
+            comboSet = set(combo)
+            rowPairs = self.getRowChuteRemotePairs(comboSet)
+            if len(rowPairs) != 0:
+                for (a, b), (x, y) in rowPairs:
+                    rowOffset1 = (a // 3) * 3
+                    colOffset1 = (b // 3) * 3
+                    colOffset2 = (y // 3) * 3
                     pencilSet = set()
                     pennedSet = set()
-                    # creates list of all noted values (0 excluded) in the appropriate nodes as well as all of the penned in values
-                    for a in range(rowOffset, rowOffset + 3):
-                        if a == x or a == i:
+                    for row in range(rowOffset1, rowOffset1 + 3):
+                        if row == a or row == x:
+                            continue
+                        for col in range(9):
+                            if colOffset1 <= col < colOffset1 + 3 or colOffset2 <= col < colOffset2 + 3:
+                                continue
+                            if self.layout[row][col].val == 0:
+                                temp = set(self.layout[row][col].note) - {0}
+                                pencilSet |= temp
+                            else:
+                                pennedSet.add(self.layout[row][col].val)
+                    remoteIntersection = comboSet & (pencilSet | pennedSet)
+                    pencilIntersection = comboSet & pencilSet
+                    pennedIntersection = comboSet & pennedSet
+                    if len(pencilSet) == 0 and len(pennedIntersection) == 0:
+                        # if neither value in the remote pair is penned in, then performs double elimination
+                        for eVal in comboSet:
+                            for eCol in range(colOffset1, colOffset1 + 3):
+                                self.layout[x][eCol].note[eVal-1] = 0
+                            for eCol in range(colOffset2, colOffset2 + 3):
+                                self.layout[a][eCol].note[eVal-1] = 0
+                        if not self.stuck(tempCopy):
+                            print(f"Row Remote Pair 1: {[(a, b), (x, y)]}")
+                            return
+                        # if only one remote pair is penned in, erases that value from the appropraite nodes
+                    elif len(pennedIntersection) == 1 and len(pencilIntersection) == 0:
+                        eVal = (comboSet & pennedSet).pop()
+                        for eCol in range(colOffset1, colOffset1 + 3):
+                            self.layout[x][eCol].note[eVal-1] = 0
+                        for eCol in range(colOffset2, colOffset2 + 3):
+                            self.layout[a][eCol].note[eVal-1] = 0
+                        if not self.stuck(tempCopy):
+                            print(f"Row Remote Pair 2: {[(a, b), (x, y)]}")
+                            return
+                    # otherwise it checks for what values are pencilled in
+                    elif len(remoteIntersection) == 1 and len(pencilIntersection) == 1:
+                        eVal = (pencilSet & comboSet).pop()
+                        for eCol in range(colOffset1, colOffset1 + 3):
+                            self.layout[x][eCol].note[eVal-1] = 0
+                        for eCol in range(colOffset2, colOffset2 + 3):
+                            self.layout[a][eCol].note[eVal-1] = 0
+                        if not self.stuck(tempCopy):
+                            print(f"Row Remote Pair 3: {[(a, b), (x, y)]}")
+                            return
+        for combo in itertools.combinations(remaining, 2):
+            comboSet = set(combo)
+            colPairs = self.getColChuteRemotePairs(comboSet)
+            if len(colPairs) != 0:
+                for (a, b), (x, y) in colPairs:
+                    colOffset1 = (b // 3) * 3
+                    colOffset2 = (y // 3) * 3
+                    rowOffset1 = (a // 3) * 3
+                    rowOffset2 = (x // 3) * 3
+                    pencilSet = set()
+                    pennedSet = set()
+                    for col in range(colOffset1, colOffset1 + 3):
+                        if col == b or col == y:
+                            continue
+                        for row in range(9):
+                            if rowOffset1 <= row < rowOffset1 + 3 or rowOffset2 <= row < rowOffset2 + 3:
+                                continue
+                            if self.layout[row][col].val == 0:
+                                temp = set(self.layout[row][col].note) - {0}
+                                pencilSet |= temp
+                            else:
+                                pennedSet.add(self.layout[row][col].val)
+                    remoteIntersection = comboSet & (pencilSet | pennedSet)
+                    pencilIntersection = comboSet & pencilSet
+                    pennedIntersection = comboSet & pennedSet
+                    # if neither value in the remote pair is penned in, then performs double elimination
+                    if len(pencilSet) == 0 and len(pennedIntersection) == 0:
+                        for eVal in comboSet:
+                            for eRow in range(rowOffset1, rowOffset1 + 3):
+                                self.layout[eRow][y].note[eVal - 1] = 0
+                            for eRow in range(rowOffset2, rowOffset2 + 3):
+                                self.layout[eRow][b].note[eVal - 1] = 0
+                        if not self.stuck(tempCopy):
+                            print(f"Col Remote Pair 1: {[(a, b), (x, y)]}")
+                            return
+                        # if only one remote pair is penned in, erases that value from the appropraite nodes
+                    elif len(pennedIntersection) == 1 and len(pencilIntersection) == 0:
+                        eVal = (pennedIntersection).pop()
+                        for eRow in range(rowOffset1, rowOffset1 + 3):
+                            self.layout[eRow][y].note[eVal - 1] = 0
+                        for eRow in range(rowOffset2, rowOffset2 + 3):
+                            self.layout[eRow][b].note[eVal - 1] = 0
+                        if not self.stuck(tempCopy):
+                            print(f"Col Remote Pair 2: {[(a, b), (x, y)]}")
+                            return
+                    # otherwise it checks for what values are pencilled in
+                    elif len(remoteIntersection) == 1 and len(pencilIntersection) == 1:
+                        eVal = (pencilSet & comboSet).pop()
+                        for eRow in range(rowOffset1, rowOffset1 + 3):
+                            self.layout[eRow][y].note[eVal - 1] = 0
+                        for eRow in range(rowOffset2, rowOffset2 + 3):
+                            self.layout[eRow][b].note[eVal - 1] = 0
+                        if not self.stuck(tempCopy):
+                            print(f"Col Remote Pair 3: {[(a, b), (x, y)]}")
+                            return
+    def getRowChuteRemotePairs(self, combo):
+        remotePairs = []
+        for rowBlock in range(0, 9, 3):
+            for i in range(rowBlock, rowBlock + 3):
+                for j in range(9):
+                    if self.layout[i][j].val != 0:
+                        continue
+                    tempSet = set(self.layout[i][j].note) - {0}
+                    if tempSet != combo:
+                        continue
+                    for a in range(rowBlock, rowBlock + 3):
+                        if a == i:
                             continue
                         for b in range(9):
-                            if colOffset <= b < colOffset + 3 or colOffset2 <= b < colOffset2 + 3:
+                            if (j//3) == (b//3) or self.layout[a][b].val != 0:
                                 continue
-                            # print(f"({a}, {b})")
-                            if self.layout[a][b].val == 0:
-                                temp = set(self.layout[a][b].note)
-                                temp.discard(0)
-                                pencilSet = pencilSet.union(temp)
-                            else:
-                                pennedSet.add(self.layout[a][b].val)   
-                    # if all values are penned in (pencilSet is empty), then it checks if only one or neither of the values exist in the 
-                    if len(pencilSet) == 0:
-                        # if neither value in the remote pair is penned in, then performs double elimination
-                        if len(tempSet.intersection(pennedSet)) == 0:
-                            # print(f"Row Remote Pair 1: {remotePair}")
-                            for val in tempSet:
-                                for a in range(colOffset, colOffset + 3):
-                                    self.layout[x][a].note[val-1] = 0
-                                for a in range(colOffset2, colOffset2 + 3):
-                                    self.layout[i][a].note[val-1] = 0
-                        # if only one remote pair is penned in, erases that value from the appropraite nodes
-                        elif len(tempSet.intersection(pennedSet)) == 1:
-                            # print(f"Row Remote Pair 2: {remotePair}")
-                            val = set(tempSet.intersection(pennedSet)).pop()
-                            for a in range(colOffset, colOffset + 3):
-                                self.layout[x][a].note[val-1] = 0
-                            for a in range(colOffset2, colOffset2 + 3):
-                                self.layout[i][a].note[val-1] = 0
-                    # otherwise it checks for what values are pencilled in
-                    elif len(tempSet.intersection(pencilSet.union(pennedSet))) == 1:
-                        val = set(tempSet.intersection(pencilSet.union(pennedSet))).pop
-                        if len(pencilSet.intersection(tempSet)) == 1:
-                            # print(f"Row Remote Pair 3: {remotePair}")
-                            val = set(pencilSet.intersection(tempSet)).pop()
-                            for a in range(colOffset, colOffset + 3):
-                                self.layout[x][a].note[val-1] = 0
-                            for a in range(colOffset2, colOffset2 + 3):
-                                self.layout[i][a].note[val-1] = 0
-                # if change is made, teminate function
-                if not tempCopy.stuck(self):
-                    # print("row change made")
-                    return
-                # resets key variables and performs search on vertical chute
-                remotePair = []
-                for a in range(9):
-                    if rowOffset <= a < rowOffset + 3:
+                            temp = set(self.layout[a][b].note) - {0}
+                            if temp == combo and [(a, b), (i, j)] not in remotePairs:
+                                remotePairs.append([(i, j), (a, b)])
+        return remotePairs
+        
+    def getColChuteRemotePairs(self, combo):
+        remotePairs = []
+        for colBlock in range(0, 9, 3):
+            for j in range(colBlock, colBlock + 3):
+                for i in range(9):
+                    if self.layout[i][j].val != 0:
+                        continue
+                    tempSet = set(self.layout[i][j].note)
+                    tempSet.discard(0)
+                    if tempSet != combo:
+                        continue
+                    for b in range(colBlock, colBlock + 3):
+                        if b == j:
                             continue
-                    for b in range(colOffset, colOffset + 3):
-                        if b == j or self.layout[a][b].val != 0:
-                            continue
-                        temp = set(self.layout[a][b].note)
-                        temp.discard(0)
-                        if tempSet == temp:
-                            remotePair = [(i,j),(a,b)]
-                if len(remotePair) == 2:
-                    # print(f"Col Remote Pair: {remotePair}")
-                    x,y = remotePair[1]
-                    rowOffset2 = (x//3) * 3
-                    pencilSet = set()
-                    pennedSet = set()
-                    for a in range(9):
-                        if rowOffset <= a < rowOffset + 3 or rowOffset2 <= a < rowOffset2 + 3:
-                            continue
-                        for b in range(colOffset, colOffset + 3):
-                            if b == y or b == j:
+                        for a in range(9):
+                            if (i // 3) == (a // 3) or self.layout[a][b].val != 0:
                                 continue
-                            # print(f"({a}, {b})")
-                            if self.layout[a][b].val == 0:
-                                temp = set(self.layout[a][b].note)
-                                temp.discard(0)
-                                pencilSet = pencilSet.union(temp)
-                            else:
-                                pennedSet.add(self.layout[a][b].val)
-                    if len(pencilSet) == 0:
-                        if len(tempSet.intersection(pennedSet)) == 0:
-                            # print(f"Col Remote Pair 1: {remotePair}")
-                            for val in tempSet:
-                                for a in range(rowOffset, rowOffset + 3):
-                                    self.layout[a][y].note[val-1] = 0
-                                for a in range(rowOffset2, rowOffset2 + 3):
-                                    self.layout[a][j].note[val-1] = 0
-                        elif len(tempSet.intersection(pennedSet)) == 1:
-                            # print(f"Col Remote Pair 2: {remotePair}")
-                            val = set(tempSet.intersection(pennedSet)).pop()
-                            for a in range(rowOffset, rowOffset + 3):
-                                self.layout[a][y].note[val-1] = 0
-                            for a in range(rowOffset2, rowOffset2 + 3):
-                                self.layout[a][j].note[val-1] = 0
-                    elif len(tempSet.intersection(pencilSet.union(pennedSet))) == 1:
-                        # print(f"Col Remote Pair 3: {remotePair}")
-                        val = set(tempSet.intersection(pencilSet.union(pennedSet))).pop()
-                        for a in range(rowOffset, rowOffset + 3):
-                            self.layout[a][y].note[val-1] = 0
-                        for a in range(rowOffset2, rowOffset2 + 3):
-                            self.layout[a][j].note[val-1] = 0
-
+                            temp = set(self.layout[a][b].note)
+                            temp.discard(0)
+                            if temp == combo and [(a, b), (i, j)] not in remotePairs:
+                                remotePairs.append([(i, j), (a, b)])
+        return remotePairs
     # ********************************************************************************************************************
     def simpleColoringUtil(self):
         for val in range(1,10):
@@ -1229,8 +1284,11 @@ class Puzzle:
                     for a in colorNodes:
                         if a[1] != badColor:
                             x, y = a[0]
-                            # print(f"SimpleColoring found {val} at index ({x}, {y})")
-                            self.layout[i][j].setVal(val)
+                            print(f"SimpleColoring found {val} at index ({x}, {y})")
+                            # print("start")
+                            # for nodes in group:
+                            #     print(nodes)
+                            self.layout[x][y].setVal(val)
                 if not tempCopy.stuck(self):
                     return
                 # rule 4
@@ -1555,176 +1613,50 @@ class Puzzle:
                 masterSet = masterSet.union(set(self.layout[i][j].note))
         masterSet.discard(0)
         for val in masterSet:
-            self.swordfish(val)
+            self.swordfish(val, tempCopy)
             if not self.stuck(tempCopy):
                 return
-    def swordfish(self, val):
-        tempCopy = copy.deepcopy(self)
-        for i in range(9):
-            for j in range(9):
-                if val not in self.layout[i][j].note:
-                    continue
-                # print(f"{val}: ({i},{j})")
-                tempSet = set(self.layout[i][j].note)
-                tempSet.remove(0)
-                goodFlag = False
-                stellarFlag = False
-                t1 = [(i,j)]
-                t2 = []
-                t3 = []
-                rows = [i]
-                cols = [j]
-                # first searches for doubles or triples in a row
-                for col in range(9):
-                    if col in cols or self.layout[i][col].val != 0:
-                        continue
-                    t1 = [(i,j)]
-                    if len(t1) == 1 and val in self.layout[i][col].note:
-                        t1 += [(i, col)]
-                        cols += [col]
-                        if self.singleRowCheck(t1, {val}):
-                            stellarFlag = True
-                            break
-                    elif val in self.layout[i][col].note:
-                        if self.singleRowCheck(t1 + [(i, col)], {val}):
-                            t1 += [(i, col)]
-                            cols += [col]
-                            goodFlag = True
-                            break
-                if stellarFlag:
-                    for row in range(9):
-                        if len(t2) == 3:
-                            break
-                        t2 = []
-                        if row in rows:
-                            continue
-                        if val in self.layout[row][cols[0]].note or val in self.layout[row][cols[1]].note:
-                            t2 = [(row, cols[0]), (row, cols[1])]
-                            for col in range(9):
-                                if col in cols:
-                                    continue
-                                if val in self.layout[row][col].note and self.singleRowCheck(t2 + [(row, col)], {val}):
-                                    cols += [col]
-                                    rows += [row]
-                                    t1 += [(rows[0], col)]
-                                    t2 += [(row, col)]
-                                    goodFlag = True
-                                    break                                        
-                elif goodFlag:
-                    goodFlag = False
-                    for row in range(9):
-                        t2 = []
-                        if row in rows:
-                            continue
-                        if val in self.layout[row][cols[0]].note or val in self.layout[row][cols[1]].note or val in self.layout[row][cols[2]].note:
-                            t2 = [(row, cols[0]), (row, cols[1]), (row, cols[2])]
-                            if self.singleRowCheck(t2, {val}):
-                                rows += [row]
-                                goodFlag = True
-                                break
-                if goodFlag:
-                    goodFlag = False
-                    for row in range(9):
-                        t3 = []
-                        if row in rows:
-                            continue
-                        if val in self.layout[row][cols[0]].note or val in self.layout[row][cols[1]].note or val in self.layout[row][cols[2]].note:
-                            t3 = [(row, cols[0]), (row, cols[1]), (row, cols[2])]
-                            if self.singleRowCheck(t3, {val}):
-                                rows += [row]
-                                goodFlag = True
-                                break
-                if goodFlag:
-                    t1 = sorted(t1, key=lambda item: item[0])
-                    t2 = sorted(t2, key=lambda item: item[0])
-                    t3 = sorted(t3, key=lambda item: item[0])
-                    for a in range(3):
-                        self.subUpdateNotes('col', [t1[a], t2[a], t3[a]], {val}) 
-                    if not tempCopy.stuck(self):
-                        # print(f"T1: {t1}")
-                        # print(f"T2: {t2}")
-                        # print(f"T3: {t3}")
-                        # print(f"Updating {val} in cols {cols[0]}, {cols[1]}, {cols[2]}")
-                        return
-                # *************************************************
-                # searches for swordfish in columns
-                t1 = [(i, j)]
-                t2 = []
-                t3 = []
-                rows = [i]
-                cols = [j]
-                goodFlag = False
-                stellarFlag = False
-                for row in range(9):
-                    if row in rows or self.layout[row][j].val != 0:
-                        continue
-                    if len(t1) == 1 and val in self.layout[row][j].note:
-                        t1 += [(row, j)]
-                        rows += [row]
-                        if self.singleColCheck(t1, {val}):
-                            stellarFlag = True
-                            break
-                    elif val in self.layout[i][col].note:
-                        if self.singleColCheck(t1 + [(row, j)], {val}):
-                            t1 += [(row, j)]
-                            rows += [row]
-                            goodFlag = True
-                            break
-                if stellarFlag:
-                    for col in range(9):
-                        if goodFlag:
-                            break
-                        t2 = []
-                        if col in cols:
-                            continue
-                        if val in self.layout[rows[0]][col].note or val in self.layout[rows[1]][col].note:
-                            t2 = [(rows[0], col), (rows[1], col)]
-                            for row in range(9):
-                                if row in rows:
-                                    continue
-                                if val in self.layout[row][col].note and self.singleColCheck(t2 + [(row, col)], {val}):
-                                    cols += [col]
-                                    rows += [row]
-                                    t1 += [(row, cols[0])]
-                                    t2 += [(row, col)]
-                                    goodFlag = True
-                                    break       
-                elif goodFlag:
-                    goodFlag = False
-                    for col in range(9):
-                        t2 = []
-                        if col in cols:
-                            continue
-                        if val in self.layout[rows[0]][col].note or val in self.layout[rows[1]][col].note or val in self.layout[rows[2]][col].note:
-                            t2 = [(rows[0], col), (rows[1], col), (rows[2], col)]
-                            if self.singleColCheck(t2, {val}):
-                                cols += [col]
-                                goodFlag = True
-                                break
-                if goodFlag:
-                    goodFlag = False
-                    for col in range(9):
-                        t3 = []
-                        if col in cols:
-                            continue
-                        if val in self.layout[rows[0]][col].note or val in self.layout[rows[1]][col].note or val in self.layout[rows[2]][col].note:
-                            t3 = [(rows[0], col), (rows[1], col), (rows[2], col)]
-                            if self.singleColCheck(t3, {val}):
-                                cols += [col]
-                                goodFlag = True
-                                break
-                if goodFlag:
-                    t1 = sorted(t1, key=lambda item: item[1])
-                    t2 = sorted(t2, key=lambda item: item[1])
-                    t3 = sorted(t3, key=lambda item: item[1])
-                    for a in range(3):
-                        self.subUpdateNotes('row', [t1[a], t2[a], t3[a]], {val})
-                    if not tempCopy.stuck(self):
-                        # print(f"T1: {t1}")
-                        # print(f"T2: {t2}")
-                        # print(f"T3: {t3}")
-                        # print(f"Updating {val} in rows {rows[0]}, {rows[1]}, {rows[2]}")
-                        return
+                
+    def swordfish(self, val, tempCopy):
+        # works the same way as xwing
+        rowSet = {r: {c for c in range(9) if val in self.layout[r][c].note} for r in range(9) if any(val in self.layout[r][c].note for c in range(9))}
+        # creates an array of keys if the rowset item fits length parameters 
+        rowKeys = [r for r in rowSet if 2 <= len(rowSet[r]) <= 3]
+        for i in range(len(rowKeys)):
+            for j in range(i + 1, len(rowKeys)):
+                for k in range(j + 1, len(rowKeys)):
+                    # for erasing purposes, it pulls the sets from rowKeys 
+                    r1, r2, r3 = rowKeys[i], rowKeys[j], rowKeys[k]
+                    # creates a masterset of the contents of r1, r2, and r3
+                    cols = rowSet[r1] | rowSet[r2] | rowSet[r3]
+                    # only continues if the masterset is length 3
+                    if len(cols) == 3:
+                        tempRowSet = {r1, r2, r3}
+                        tempColSet = cols
+                        for c in tempColSet:
+                            ignore_nodes = [(r, c) for r in tempRowSet]
+                            self.subUpdateNotes('col', ignore_nodes, {val})
+                        if not self.stuck(tempCopy):
+                            print(f"Swordfish on value {val}: rows {sorted(tempRowSet)}, columns {sorted(tempColSet)}")
+                            return
+    
+        colSet = {c: {r for r in range(9) if val in self.layout[r][c].note} for c in range(9) if any(val in self.layout[r][c].note for r in range(9))}
+        colKeys = [c for c in colSet if 2 <= len(colSet[c]) <= 3]
+    
+        for i in range(len(colKeys)):
+            for j in range(i + 1, len(colKeys)):
+                for k in range(j + 1, len(colKeys)):
+                    c1, c2, c3 = colKeys[i], colKeys[j], colKeys[k]
+                    rows = colSet[c1] | colSet[c2] | colSet[c3]
+                    if len(rows) == 3:
+                        tempColSet = {c1, c2, c3}
+                        tempRowSet = rows
+                        for r in tempRowSet:
+                            ignore_nodes = [(r, c) for c in tempColSet]
+                            self.subUpdateNotes('row', ignore_nodes, {val})
+                        if not self.stuck(tempCopy):
+                            print(f"Swordfish on value {val}: columns {sorted(tempColSet)}, rows {sorted(tempRowSet)}")
+                            return
 
     # ********************************************************************************************************************
     # xyz-wing
@@ -1796,6 +1728,8 @@ class Puzzle:
                     return
                 if len(rowWing) > 0 and len(colWing) == 0:
                     for tempRowNode in rowWing:
+                        if self.inBox([tempRowNode, (i, j)]):
+                            continue
                         tempRowSet = set(self.layout[tempRowNode[0]][tempRowNode[1]].note)
                         tempRowSet.discard(0)
                         for a in range(rowOffset, rowOffset + 3):
@@ -1818,6 +1752,8 @@ class Puzzle:
                                     
                 elif len(colWing) > 0 and len(rowWing) == 0:
                     for tempColNode in colWing:
+                        if self.inBox([tempColNode, (i, j)]):
+                            continue
                         tempColSet = set(self.layout[tempColNode[0]][tempColNode[1]].note)
                         tempColSet.discard(0)
                         for a in range(rowOffset, rowOffset + 3):
@@ -2226,6 +2162,8 @@ class Puzzle:
                 cycles = self.getCycle3(currentCycle, val)
                 if cycles is not None:
                     for cycle in cycles:
+                        for node in cycles:
+                            print(node)
                         if set(cycle) not in doneCycles:
                             doneCycles = doneCycles.union(set(cycle))
                             eNode = cycle[len(cycle)-1]
@@ -2397,6 +2335,8 @@ class Puzzle:
         for col in range(9):
             if colOffset <= col < colOffset + 3 or val not in self.layout[i][col].note:
                 continue
+            if self.singleRowCheck([coords, (i, col)], {val}):
+                continue
             newNodes += [(i, col)]
         return newNodes
     def getWeakCol(self, coords, val):
@@ -2406,6 +2346,8 @@ class Puzzle:
         colOffset = (j//3) * 3
         for row in range(9):
             if rowOffset <= row < rowOffset + 3 or val not in self.layout[row][j].note:
+                continue
+            if self.singleColCheck([coords, (row, j)], {val}):
                 continue
             newNodes += [(row, j)]
         return newNodes
@@ -2419,7 +2361,9 @@ class Puzzle:
                 continue
             for col in range(colOffset, colOffset + 3):
                 if col == j or val not in self.layout[row][col].note:
-                    continue    
+                    continue
+                if self.singleBoxCheck([coords, (row,col)], {val}):
+                    continue
                 newNodes += [(row, col)]
         return newNodes
     def getSet(self, coord):
@@ -2437,9 +2381,9 @@ class Puzzle:
                 remaining = remaining.union(tempSet)
         remaining.discard(0)
         remaining = sorted(remaining)
-        print(remaining)
+        # print(remaining)
         for val in remaining:
-            print("currently on: ", val)
+            # print("currently on: ", val)
             self.medusa3D(val)
             if not self.stuck(tempCopy):
                 return
@@ -2484,8 +2428,8 @@ class Puzzle:
                 for node in subGroup:
                     normalized += [node]
                     valsDone.add(node[2])
-                    print(node)
-            print()
+                    # print(node)
+            # print()
             # rule 1 states that if two of the same colors are in the same location, then you remove all of that color
             for a in range(len(normalized)):
                 row1, col1, val1, color1 = normalized[a]
@@ -2615,7 +2559,7 @@ class Puzzle:
             # if an uncolored node shares a row, column, or box with nodes with colored notes that share all of the uncolored node's notes and all of the colors are the same, then that color cannot be true.
             for row in range(9):
                 for col in range(9):
-                    if self.locked[row][col]:
+                    if self.layout[row][col].val != 0:
                         continue
                     tempSet = set(self.layout[row][col].note)
                     tempSet.discard(0)
@@ -2720,326 +2664,1506 @@ class Puzzle:
             for j in range(len(coordGroups[i])):
                 if item in coordGroups[i][j]:
                     return i
-        return -1            
-    # ********************************************************************************************************************
+        return -1
+    # # ********************************************************************************************************************
     def jellyFishUtil(self):
         tempCopy = copy.deepcopy(self)
         remaining = set()
         for i in range(9):
             for j in range(9):
                 remaining |= set(self.layout[i][j].note)
-        remaining.discard(0):
-        print(remaining)
+        remaining.discard(0)
+        # print(remaining)
         for val in remaining:
-            self.jellyFish(val)
+            self.jellyFish(val, tempCopy)
             if not self.stuck(tempCopy):
                 return
                 
-    def jellyFish(self, val):
+    def jellyFish(self, val, tempCopy):
+        # works the same way as swordfish but there's 4 values to check the parameter and also different loop functionality
+        rowSet = {r: {c for c in range(9) if val in self.layout[r][c].note} for r in range(9) if any(val in self.layout[r][c].note for c in range(9))}
+        rowKeys = [r for r in rowSet if 2 <= len(rowSet[r]) <= 4]
+        for rowCombo in itertools.combinations(rowKeys, 4):
+            r1, r2, r3, r4 = rowCombo
+            cols = rowSet[r1] | rowSet[r2] | rowSet[r3] | rowSet[r4]
+            if len(cols) == 4:
+                tempRowSet = set(rowCombo)
+                tempColSet = cols
+                for c in tempColSet:
+                    ignoreNodes = [(r, c) for r in tempRowSet]
+                    self.subUpdateNotes('col', ignoreNodes, {val})
+                if not self.stuck(tempCopy):
+                    print(f"Jellyfish on value {val}: rows {sorted(tempRowSet)}, columns {sorted(tempColSet)}")
+                    return
+        colSet = {c: {r for r in range(9) if val in self.layout[r][c].note} for c in range(9) if any(val in self.layout[r][c].note for r in range(9))}
+        colKeys = [c for c in colSet if 2 <= len(colSet[c]) <= 4]
+        for colCombo in itertools.combinations(colKeys, 4):
+            c1, c2, c3, c4 = colCombo
+            rows = colSet[c1] | colSet[c2] | colSet[c3] | colSet[c4]
+            if len(rows) == 4:
+                tempColSet = set(colCombo)
+                tempRowSet = rows
+                for r in tempRowSet:
+                    ignoreNodes = [(r, c) for c in tempColSet]
+                    self.subUpdateNotes('row', ignoreNodes, {val})
+                if not self.stuck(tempCopy):
+                    print(f"Jellyfish on value {val}: columns {sorted(tempColSet)}, rows {sorted(tempRowSet)}")
+                    return
+    # ********************************************************************************************************************
+    def uniqueRectangleUtil(self):
         tempCopy = copy.deepcopy(self)
-        rowSets = {i: set() for i in range(9)}
-        colSets = {i: set() for i in range(9)}
+        remaining = {v for r in range(9) for c in range(9) for v in self.layout[r][c].note if v != 0}
+        # print(remaining)
+        for combo in itertools.combinations(remaining, 2):
+            self.uniqueRectangles(set(combo), tempCopy)
+            if not self.stuck(tempCopy):
+                return
+
+    def uniqueRectangles(self, combo, tempCopy):
+        rowSets = set()
+        for row in range(9):
+            matchingCols = [c for c in range(9) if set(self.layout[row][c].note) - {0} == combo]
+            for c1, c2 in itertools.combinations(matchingCols, 2):
+                pair = frozenset(((row, c1), (row, c2)))
+                rowSets.add(pair)
+        rowRPSets = self.getRowChuteRemotePairs(combo)
+        colSets = set()
+        for col in range(9):
+            matchingRows = [r for r in range(9) if set(self.layout[r][col].note) - {0} == combo]
+            for r1, r2 in itertools.combinations(matchingRows, 2):
+                pair = frozenset(((r1, col), (r2, col)))
+                colSets.add(pair)
+        colRPSets = self.getColChuteRemotePairs(combo)
+        
+        # Type-1 removes combo from cells that will form deadly pattern (this one targets using row pairs) 
+        for (a, b), (x, y) in rowSets:
+            for row in range(9):
+                if row == a:
+                    continue
+                if set(self.layout[row][b].note) - {0} == combo:
+                    for val in combo:
+                        self.layout[row][y].note[val-1] = 0
+                elif set(self.layout[row][y].note) - {0} == combo:
+                    for val in combo:
+                        self.layout[row][b].note[val-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Removed {combo} using row type 1\nCells: {(a, b), (x, y)}")
+                    return
+        for (a, b), (x, y) in colSets:
+            # print("ColSet: ", combo, cells[0], cells[1])
+            for col in range(9):
+                if col == b:
+                    continue
+                if set(self.layout[a][col].note) - {0} == combo:
+                    for val in combo:
+                        self.layout[x][col].note[val-1] = 0
+                elif set(self.layout[x][col].note) - {0} == combo:
+                    for val in combo:
+                        self.layout[a][col].note[val-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Removed {combo} using col type 1\nCells: {(a, b), (x, y)}")
+                    return
+        # Type-2A and Type-2B refer to nodes with equal notes that contain the combo and are in line (columns) with the pair
+        # since the non-combo number must be in these cells, we can erase them from its current row and box (but not the whole column)
+        for (a, b), (x, y) in rowSets:
+            if not self.inBox([(a, b), (x, y)]):
+                continue
+            for row in range(9):
+                if row == a:
+                    continue
+                if self.layout[row][b].note == self.layout[row][y].note and len(set(self.layout[row][b].note) - {0}) == 3 and combo <= set(self.layout[row][b].note) - {0}:
+                    eIgnoreCells = [(row, b), (row, y)]
+                    eVal = set(self.layout[row][b].note) - {0} - combo
+                    eVal = eVal.pop()
+                    self.subUpdateNotes('row', eIgnoreCells, {eVal})
+                    if self.inBox([(a, b), (x, y)]):   
+                        self.subUpdateNotes('box', eIgnoreCells, {eVal})
+                if not self.stuck(tempCopy):
+                    print(f"Removed {eVal} using row type 2A/B")
+                    return
+        for (a, b), (x, y) in colSets:
+            if not self.inBox([(a, b), (x, y)]):
+                continue
+            # print("ColSet: ", combo, cells[0], cells[1])
+            for col in range(9):
+                if col == b:
+                    continue
+                if len(set(self.layout[a][col].note) - {0}) == 3 and set(self.layout[a][col].note) == set(self.layout[x][col].note) and combo <= set(self.layout[x][col].note) - {0}:
+                    eIgnoreCells = [(a, col), (x, col)]
+                    eVal = set(self.layout[a][col].note) - {0} - combo
+                    eVal = eVal.pop()
+                    self.subUpdateNotes('col', eIgnoreCells, {eVal})
+                    if self.inBox([(a, b), (x, y)]):   
+                        self.subUpdateNotes('box', eIgnoreCells, {eVal})
+                if not self.stuck(tempCopy):
+                    print(f"Removed {eVal} using row type 2A/B")
+                    return
+
+        # type 2C deals with remote pairs that form rectangles, if the non remote pair values are identical, the non combo value must exist in the non remote pair nodes, so it can be removed from the inbox nodes that the remote pair nodes can see (in respective rows and columns)
+        for (a, b), (x, y) in rowRPSets:
+            # print(f"{combo} Row Remote Pairs: {(a, b), (x, y)}")
+            tempSet1 = set(self.layout[a][y].note) - {0}
+            tempSet2 = set(self.layout[x][b].note) - {0}
+            if tempSet1 == tempSet2 and self.layout[a][y].val == 0 and combo <= set(self.layout[a][y].note) - {0}:
+                eVal = tempSet1 - {0} - combo
+                eVal = eVal.pop()
+                colOffset1 = (b//3) * 3
+                colOffset2 = (y//3) * 3
+                for eCol in range(colOffset1, colOffset1 + 3):
+                    self.layout[a][eCol].note[eVal - 1] = 0
+                for eCol in range(colOffset2, colOffset2 + 3):
+                    self.layout[x][eCol].note[eVal - 1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Removed {eVal} using row type 2C")
+                    return
+        for (a, b), (x, y) in colRPSets:
+            # print(f"{combo} Col Remote Pairs: {(a, b), (x, y)}")
+            tempSet1 = set(self.layout[a][y].note) - {0}
+            tempSet2 = set(self.layout[x][b].note) - {0}
+            if tempSet1 == tempSet2 and self.layout[a][y].val == 0 and combo <= set(self.layout[a][y].note) - {0}:
+                eVal = tempSet1 - combo
+                eVal = eVal.pop()
+                rowOffset1 = (a//3) * 3
+                rowOffset2 = (x//3) * 3
+                for eRow in range(rowOffset1, rowOffset1 + 3):
+                    self.layout[eRow][b].note[eVal-1] = 0
+                for eRow in range(rowOffset2, rowOffset2 + 3):
+                    self.layout[eRow][y].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Removed {eVal} using col type 2C")
+                    return
+
+        # type 3 deals with non combo values found in the roof nodes, if the roof nodes non-combo values form a loop with notes in it's row or column (or box if they share a box), then the loop values can be removed from their respective row or column (or box)
+        for (a, b), (x, y) in rowSets:
+            rowOffset = (a//3) * 3
+            if not self.inBox([(a, b), (x, y)]):
+                for row in range(rowOffset, rowOffset + 3):
+                    if row == a:
+                        continue
+                    tempSet1 = set(self.layout[row][b].note) - {0}
+                    tempSet2 = set(self.layout[row][y].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goalSet = (tempSet1 | tempSet2) - combo
+                        if len(goalSet) not in (2, 3):
+                            continue
+                        ignoreSet = [(row, b), (row, y)]
+                        print(f"Floor: {(a, b), (x, y)}. Roof: {(row, b), (row, y)}")
+                        result = self.urLoopCheck('row', combo, ignoreSet, goalSet)
+                        if result[0]:
+                            ignoreSet = result[1]
+                            eVals = result[2]
+                            self.subUpdateNotes('row', ignoreSet, eVals)
+                            if not self.stuck(tempCopy):
+                                print(f"Floor: {(a, b), (x, y)}. Roof: {(row, b), (row, y)}\nRemoved {eVals} using from row {row} using type 3 (Not in box)")
+                                return
+            else:
+                for row in range(9):
+                    if rowOffset <= row < rowOffset + 3:
+                        continue
+                    tempSet1 = set(self.layout[row][b].note) - {0}
+                    tempSet2 = set(self.layout[row][y].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goalSet = (tempSet1 | tempSet2) - combo
+                        if len(goalSet) not in (2, 3):
+                            continue
+                        ignoreSet = [(row, b), (row, y)]
+                        result = self.urLoopCheck('row', combo, ignoreSet, goalSet)
+                        if result[0]:
+                            ignoreSet = result[1]
+                            eVals = result[2]
+                            self.subUpdateNotes('row', ignoreSet, eVals)
+                            if not self.stuck(tempCopy):
+                                print(f"Floor: {(a, b), (x, y)}. Roof: {(row, b), (row, y)}\nRemoved {eVals} using from row {row} using type 3 (In box)")
+                        ignoreSet = [(row, b), (row, y)]
+                        result = self.urLoopCheck('box', combo, ignoreSet, goalSet)
+                        if result[0]:
+                            ignoreSet = result[1]
+                            eVals = result[2]
+                            self.subUpdateNotes('box', ignoreSet, eVals)
+                            if not self.stuck(tempCopy):
+                                print(f"Floor: {(a, b), (x, y)}. Roof: {(row, b), (row, y)}\nRemoved {eVals} using from box using type 3 (In box)")
+                        if not self.stuck(tempCopy):
+                            return
+
+        for (a, b), (x, y) in colSets:
+            colOffset = (b // 3) * 3
+            if not self.inBox([(a, b), (x, y)]):
+                for col in range(colOffset, colOffset + 3):
+                    if col == b:
+                        continue
+                    tempSet1 = set(self.layout[a][col].note) - {0}
+                    tempSet2 = set(self.layout[x][col].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goalSet = (tempSet1 | tempSet2) - combo
+                        if len(goalSet) not in (2, 3):
+                            continue
+                        ignoreSet = [(a, col), (x, col)]            
+                        result = self.urLoopCheck('col', combo, ignoreSet, goalSet)
+                        if result[0]:
+                            print(f"IgnoreSet: {result[1]}")
+                            print(f"eVals: {result[2]}")
+                            ignoreSet = result[1]
+                            eVals = result[2]
+                            self.subUpdateNotes('col', ignoreSet, eVals)
+                            if not self.stuck(tempCopy):
+                                print(f"Floor: {(a, b), (x, y)}. Roof: {(a, col), (x, col)}\nRemoved {eVals} using from col {col} using type 3 (Not in box)")
+                                return
+            else:
+                for col in range(9):
+                    if colOffset <= col < colOffset + 3:
+                        continue
+                    tempSet1 = set(self.layout[a][col].note) - {0}
+                    tempSet2 = set(self.layout[x][col].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goalSet = (tempSet1 | tempSet2) - combo
+                        if len(goalSet) not in (2, 3):
+                            continue
+                        ignoreSet = [(a, col), (x, col)]
+                        result = self.urLoopCheck('col', combo, ignoreSet, goalSet)
+                        if result[0]:
+                            ignoreSet = result[1]
+                            eVals = result[2]
+                            self.subUpdateNotes('col', ignoreSet, eVals)
+                            if not self.stuck(tempCopy):
+                                print(f"Floor: {(a, b), (x, y)}. Roof: {(a, col), (x, col)}\nRemoved {eVals} using from col {col} using type 3 (In box)")
+                        ignoreSet = [(a, col), (x, col)]
+                        result = self.urLoopCheck('box', combo, ignoreSet, goalSet)
+                        if result[0]:
+                            ignoreSet = result[1]
+                            eVals = result[2]
+                            self.subUpdateNotes('box', ignoreSet, eVals)
+                            if not self.stuck(tempCopy):
+                                print(f"Floor: {(a, b), (x, y)}. Roof: {(a, col), (x, col)}\nRemoved {eVals} using from box using type 3 (In box)")
+                        if not self.stuck(tempCopy):
+                            return
+        # Rule 4 checks roof nodes to see if they are exlusive to their the roof nodes in their given row, column or box (if they share a box), and removes the other combo value if this is true
+        for (a, b), (x, y) in rowSets:
+            rowOffset = (a//3) * 3
+            if self.inBox([(a, b), (x, y)]):
+                for row in range(9):
+                    if rowOffset <= row < rowOffset + 3:
+                        continue
+                    tempSet1 = set(self.layout[row][b].note) - {0}
+                    tempSet2 = set(self.layout[row][y].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goodVal = 0
+                        for tempVal in combo:
+                            if self.singleRowCheck([(row, b), (row, y)], {tempVal}) or self.singleBoxCheck([(row, b), (row, y)], {tempVal}):
+                                goodVal = tempVal
+                                break
+                        if goodVal != 0:
+                            eVal = combo - {goodVal}
+                            eVal = eVal.pop()
+                            self.layout[row][b].note[eVal-1] = 0
+                            self.layout[row][y].note[eVal-1] = 0
+                            if not self.stuck(tempCopy):
+                                print(f"Removed {eVal} from roof nodes {(row, b), (row, y)} using row type 4a")
+                                return
+            else:
+                for row in range(rowOffset, rowOffset + 3):
+                    if row == a:
+                        continue
+                    tempSet1 = set(self.layout[row][b].note) - {0}
+                    tempSet2 = set(self.layout[row][y].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goodVal = 0
+                        for tempVal in combo:
+                            if self.singleRowCheck([(row, b), (row, y)], {tempVal}):
+                                goodVal = tempVal
+                                break
+                        if goodVal != 0:
+                            eVal = combo - {goodVal}
+                            eVal = eVal.pop()
+                            self.layout[row][b].note[eVal-1] = 0
+                            self.layout[row][y].note[eVal-1] = 0
+                            if not self.stuck(tempCopy):
+                                print(f"Removed {eVal} from nodes {(row, b), (row, y)} using row type 4b")
+                                return
+        for (a, b), (x, y) in colSets:
+            colOffset = (b//3) * 3
+            if self.inBox([(a, b), (x, y)]):
+                for col in range(9):
+                    if colOffset <= col < colOffset + 3: 
+                        continue
+                    tempSet1 = set(self.layout[a][col].note) - {0}
+                    tempSet2 = set(self.layout[x][col].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goodVal = 0
+                        for tempVal in combo:
+                            if self.singleColCheck([(a, col), (x, col)], {tempVal}) or self.singleBoxCheck([(a, col), (x, col)], {tempVal}):
+                                goodVal = tempVal
+                                break
+                        if goodVal != 0:
+                            eVal = combo - {goodVal}
+                            eVal = eVal.pop()
+                            self.layout[a][col].note[eVal-1] = 0
+                            self.layout[x][col].note[eVal-1] = 0
+                            if not self.stuck(tempCopy):
+                                print(f"Removed {eVal} from roof nodes {(a, col), (x, col)} using col type 4a")
+                                return
+            else:
+                for col in range(colOffset, colOffset + 3):
+                    if col == b:
+                        continue
+                    tempSet1 = set(self.layout[a][col].note) - {0}
+                    tempSet2 = set(self.layout[x][col].note) - {0}
+                    if combo <= tempSet1 and combo <= tempSet2 and tempSet1 != tempSet2:
+                        goodVal = 0
+                        for tempVal in combo:
+                            if self.singleColCheck([(a, col), (x, col)], {tempVal}):
+                                goodVal = tempVal
+                                break
+                        if goodVal != 0:
+                            eVal = combo - {goodVal}
+                            eVal = eVal.pop()
+                            self.layout[a][col].note[eVal-1] = 0
+                            self.layout[x][col].note[eVal-1] = 0
+                            if not self.stuck(tempCopy):
+                                print(f"Removed {eVal} from roof nodes {(a, col), (x, col)} using col type 4b")
+                                return
+        # rule 5
+        for (a, b), (x, y) in rowRPSets:
+            # print(f"{combo} Row Remote Pairs: {(a, b), (x, y)}")
+            tempSet1 = set(self.layout[a][y].note) - {0}
+            tempSet2 = set(self.layout[x][b].note) - {0}
+            if tempSet1 and tempSet2 and combo <= tempSet1 and combo <= tempSet2:
+                for val in combo:
+                    if self.singleRowCheck([(a, b), (a, y)], {val}) and self.singleColCheck([(a, b), (x, b)], {val}):
+                        eVal = combo - {val}
+                        eVal = eVal.pop()
+                        self.layout[a][b].note[eVal-1] = 0
+                    if self.singleRowCheck([(x, y), (x, b)], {val}) and self.singleColCheck([(x, y), (a, y)], {val}):
+                        eVal = combo - {val}
+                        eVal = eVal.pop()
+                        self.layout[x][y].note[eVal-1] = 0
+                    if not self.stuck(tempCopy):
+                        print(f"removed {eVal} from row RP nodes {(a, b), (x, y)}")
+                        return
+        for (a, b), (x, y) in colRPSets:
+            # print(f"{combo} Col Remote Pairs: {(a, b), (x, y)}")
+            tempSet1 = set(self.layout[a][y].note) - {0}
+            tempSet2 = set(self.layout[x][b].note) - {0}
+            if tempSet1 and tempSet2 and combo <= tempSet1 and combo <= tempSet2:
+                for val in combo:
+                    if self.singleRowCheck([(a, b), (a, y)], {val}) and self.singleColCheck([(a, b), (x, b)], {val}):
+                        eVal = combo - {val}
+                        eVal = eVal.pop()
+                        self.layout[a][b].note[eVal-1] = 0
+                    if self.singleRowCheck([(x, y), (x, b)], {val}) and self.singleColCheck([(x, y), (a, y)], {val}):
+                        eVal = combo - {val}
+                        eVal = eVal.pop()
+                        self.layout[x][y].note[eVal-1] = 0
+                    if not self.stuck(tempCopy):
+                        print(f"removed {eVal} from row RP nodes {(a, b), (x, y)}")
+                        return
+
+    def urLoopCheck(self, typeof, combo, roof, masterSet = None, coordList=None):
+        if coordList is None:
+            coordList = list(roof)
+        if masterSet is None:
+            masterSet = set()
+            for r, c in roof:
+                masterSet |= set(self.layout[r][c].note) - {0} - combo
+            print(f"Starting With:\nCoordList: {coordList}\nMasterSet: {masterSet}\n")
+        foundNew = False
+        currentRow, currentCol = coordList[-1]
+        
+        match typeof:
+            case 'row':
+                for col in range(9):
+                    if (currentRow, col) in coordList or self.layout[currentRow][col].val != 0:
+                        continue
+                    tempSet = set(self.layout[currentRow][col].note) - {0}
+                    if not tempSet or len(tempSet & combo) != 0:
+                        continue
+                    newMaster = masterSet | tempSet
+                    newCoords = coordList + [(currentRow, col)]
+                    if len(newCoords) >= 3 and len(newMaster) == len(newCoords) - 1:
+                        return True, newCoords, newMaster
+                    # print(f"Iterating Through:\nCoordList: {coordList}\nMasterSet: {masterSet}\n")
+                    result = self.urLoopCheck('row', combo, [(currentRow, col)], newMaster, newCoords)
+                    if result[0]:
+                        return result
+                return False, coordList, masterSet
+
+            case 'col':
+                for row in range(9):
+                    if (row, currentCol) in coordList or self.layout[row][currentCol].val != 0 or self.softlinelockedy[row][currentCol]:
+                        continue
+                    tempSet = set(self.layout[row][currentCol].note) - {0}
+                    if not tempSet or len(tempSet & combo) != 0:
+                        continue
+                    newMaster = masterSet | tempSet
+                    newCoords = coordList + [(row, currentCol)]
+                    if len(newCoords) >= 3 and len(newMaster) == len(newCoords) - 1:
+                        return True, newCoords, newMaster
+                    result = self.urLoopCheck('col', combo, [(row, currentCol)], newMaster, newCoords)
+                    if result[0]:
+                        return result
+                return False, coordList, masterSet
+
+            case 'box':
+                boxRowStart = (currentRow // 3) * 3
+                boxColStart = (currentCol // 3) * 3
+                for r in range(boxRowStart, boxRowStart + 3):
+                    for c in range(boxColStart, boxColStart + 3):
+                        if (r, c) in coordList or self.layout[r][c].val != 0:
+                            continue
+                        tempSet = set(self.layout[r][c].note) - {0}
+                        if not tempSet or len(tempSet & combo) != 0:
+                            continue
+                        newMaster = masterSet | tempSet
+                        newCoords = coordList + [(r, c)]
+                        if len(newCoords) >= 3 and len(newMaster) == len(newCoords) - 1:
+                            return True, newCoords, newMaster
+                        result = self.urLoopCheck('box', combo, [(r, c)], newMaster, newCoords)
+                        if result[0]:
+                            return result
+                return False, coordList, masterSet
+    # ********************************************************************************************************************
+    def tridagonUtil(self):
+        tempCopy = copy.deepcopy(self)
+        remaining = {v for r in range(9) for c in range(9) for v in self.layout[r][c].note if v != 0}
+        # print(remaining)
+        for combo in itertools.combinations(remaining, 3):
+            self.tridagon(set(combo), tempCopy)
+            if not self.stuck(tempCopy):
+                return
+    def tridagon(self, combo, tempCopy):
+        for rBox in range(9):
+            if rBox%3 != 0:
+                continue
+            for cBox in range(9):
+                if cBox%3 != 0:
+                    continue
+                rootPattern = self.getAscPattern((rBox, cBox), combo)
+                if rootPattern is not None and len(rootPattern) >= 3:
+                    if not any(len(set(self.layout[r][c].note) - {0} - combo) > 0 for (r, c) in rootPattern):
+                        # print(f"Ascending {combo} root {(rBox, cBox)}: {rootPattern}")
+                        newBoxes = self.getFullBox((rBox, cBox))
+                        for newSet in newBoxes:
+                            allNodes = []
+                            guardians = {i : set() for i in range(9)}
+                            for x in newSet:
+                                temp = self.getDscPattern(x, combo)
+                                if temp is not None:
+                                    allNodes += temp
+                            if len(allNodes) != 9:
+                                continue
+                            for tempX, tempY in allNodes:
+                                tempSet = set(self.layout[tempX][tempY].note) - {0} - combo
+                                if len(tempSet) > 0:
+                                    for x in tempSet:
+                                        guardians[x].add((tempX, tempY))
+                            tempCount = 0
+                            for x in guardians:
+                                tempCount += len(guardians[x])
+                            if tempCount == 1:
+                                for x in guardians:
+                                    if len(guardians[x]) == 1:
+                                        current = guardians[x].pop()
+                                        goodVal = set(self.layout[current[0]][current[1]].note) - {0} - combo
+                                        goodVal = goodVal.pop()
+                                        self.layout[current[0]][current[1]].setVal(goodVal)
+                                        print(f"Tritagon ASC found {goodVal} at node {current}")
+                                        return
+                            elif tempCount == 2:
+                                for x in guardians:
+                                    if len(guardians[x]) != 2 or not self.inBox(list(guardians[x])): 
+                                        continue
+                                    self.subUpdateNotes('box', list(guardians[x]), {x})
+                                    if not self.stuck(tempCopy):
+                                        print(f"Tritagon ASC found 2 gaurdians with {x} at nodes {guardians[x]}")
+                                        return
+                    # else:
+                    #     print(f"{combo} {(rBox, cBox)}: Bad ascending root\n")
+                        
+                rootPattern = self.getDscPattern((rBox, cBox), combo)
+                if rootPattern is not None and len(rootPattern) >= 3:
+                    if not any(len(set(self.layout[r][c].note) - {0} - combo) > 0 for (r, c) in rootPattern):
+                        # print(f"Descending {combo} root {(rBox, cBox)}: {rootPattern}")
+                        newBoxes = self.getFullBox((rBox, cBox))
+                        for newSet in newBoxes:
+                            allNodes = []
+                            guardians = {i : set() for i in range(9)}
+                            for x in newSet:
+                                temp = self.getAscPattern(x, combo)
+                                if temp is not None:
+                                    allNodes += temp
+                            if len(allNodes) != 9:
+                                continue
+                            for tempX, tempY in allNodes:
+                                tempSet = set(self.layout[tempX][tempY].note) - {0} - combo
+                                if len(tempSet) > 0:
+                                    for x in tempSet:
+                                        guardians[x].add((tempX, tempY))
+                            tempCount = 0
+                            for x in guardians:
+                                tempCount += len(guardians[x])
+                            if tempCount == 1:
+                                for x in guardians:
+                                    if len(guardians[x]) == 1:
+                                        current = guardians[x].pop()
+                                        goodVal = set(self.layout[current[0]][current[1]].note) - {0} - combo
+                                        goodVal = goodVal.pop()
+                                        self.layout[current[0]][current[1]].setVal(goodVal)
+                                        print(f"Tritagon DSC found {goodVal} at node {current}")
+                                        return
+                            elif tempCount == 2:
+                                for x in guardians:
+                                    if len(guardians[x]) != 2 or not self.inBox(list(guardians[x])):
+                                        continue
+                                    self.subUpdateNotes('box', list(guardians[x]), {x}) 
+                                    if not self.stuck(tempCopy):
+                                        print(f"Tritagon DSC found 2 gaurdians with {x} at nodes {guardians[x]}")
+                                        return
+                    # else:
+                    #     print(f"{combo} {(rBox, cBox)}: Bad descending root\n")
+                
+    def getNodes(self, boxRoot, combo):
+        rowOffset, colOffset = boxRoot
+        goodNodes = []
+        for row in range(rowOffset, rowOffset + 3):
+            for col in range(colOffset, colOffset + 3):
+                tempSet = set(self.layout[row][col].note) - {0}
+                if self.layout[row][col].val == 0 and (tempSet <= combo or combo <= tempSet):
+                    goodNodes.append((row, col))
+        goodNodes.sort(key=lambda item: (item[1], -item[0]))
+        return goodNodes
+        
+    def getAscPattern(self, boxRoot, combo):
+        nodes = self.getNodes(boxRoot, combo)
+        if len(nodes) < 3:
+            return None
+        possibleASCTriples = [{(0, 0), (2, 1), (1, 2)},
+                              {(1, 0), (0, 1), (2, 2)},
+                              {(0, 2), (1, 1), (2, 0)}]
+        for triple in itertools.combinations(nodes, 3):
+            normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
+            if normalized in possibleASCTriples:
+                return list(triple)
+        return None
+        
+    def getDscPattern(self, boxRoot, combo):
+        nodes = self.getNodes(boxRoot, combo)
+        if len(nodes) < 3:
+            return None
+        possibleDSCTriples = [{(0, 0), (1, 1), (2, 2)},
+                              {(1, 0), (2, 1), (0, 2)},
+                              {(2, 0), (0, 1), (1, 2)}]
+        for triple in itertools.combinations(nodes, 3):
+            normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
+            if normalized in possibleDSCTriples:
+                return list(triple)
+        return None
+
+    def getFullBox(self, boxRoot):
+        rBox, cBox = boxRoot
+        boxes = [0, 3, 6]
+        groups = []
+        for r in boxes:
+            for c in boxes:
+                if r <= rBox <= r + 3 and c <= cBox <= c + 3:
+                    frameR = min(r+3, 6)
+                    frameC = min(c+3, 6)
+                    cornerBoxes = [(r, c), (r, frameC), (frameR, c), (frameR, frameC)]
+                    if boxRoot in cornerBoxes:
+                        cornerBoxes.remove(boxRoot)
+                    groups.append(cornerBoxes)
+        return groups
+    # ********************************************************************************************************************
+    def fireworkUtil(self):
+        tempCopy = copy.deepcopy(self)
+        remaining = set()
         for i in range(9):
             for j in range(9):
-                if val in self.layout[i][j].note:
-                    rowSets[i].add(j)
-                    colSets[j].add(i)
-        rowSets = {r: c for r, c in rowSets.items() if 1 <= len(c) <= 4}
-        colSets = {c: r for c, r in colSets.items() if 1 <= len(r) <= 4}
-        for i in range(9):
-            if not rowSets[i] or len(rowSets[i]) > 4:
-                del rowSets[i]
-        if len(rowSets) >= 4:
-            for len in range(4, 1, -1):
-                for i in rowSets:
-                    currGroup = [rowSets[i]]
-                    currGroup = self.formsJellyFish(self, currSet, rowSets)
-                    if len(currGroup) == 4:
-                        print(f"{val} found row jellyFish in cols {currGroup}")
-                    for j in rowSets:
-                        if currSet == rowSet[j]:
-                            continue
-        for j in range(9):
-            if not colSets[j] or len(colSets[j]) > 4:
-                del colSets[j]
-        if len(colSets) >= 4:
-            for len in range(4, 1, -1):
-                for j in colSets:
-                    
-        for j in colSets:
-            if not colSets[j]:
-                del colSets[j]
-        
-    def formsJellyFish(self, currSet, rowSets):
-        for i in rowSets:
-            if rowSets[i] in currSet:
+                remaining = remaining.union(set(self.layout[i][j].note))
+        remaining.discard(0)
+        for combo in itertools.combinations(remaining, 3):
+            self.firework(set(combo), tempCopy)
+            if not self.stuck(tempCopy):
+                return
+        comboPairs = list(itertools.combinations(remaining, 2))
+        comboPairDoubles = list(itertools.permutations(comboPairs, 2))
+        for combo1, combo2 in comboPairDoubles:
+            if len(set(combo1) & set(combo2)) > 0:
                 continue
-            for x in currSet:
-                
-        return currSet
-    # ********************************************************************************************************************
-    # xy wing
-    # def xyWing(self):
-    #     tempCopy = copy.deepcopy(self)
-    #     for i in range(9):
-    #         if not tempCopy.stuck(self):
-    #             break
-    #         for j in range(9):
-    #             if not tempCopy.stuck(self):
-    #                 break
-    #             tempSet = set(self.layout[i][j].note)
-    #             tempSet.discard(0)
-    #             if self.layout[i][j].val != 0 or len(tempSet) != 2:
-    #                 continue
-    #             # checks the box
-    #             for row in range((i//3) * 3, ((i//3) * 3) + 3):
-    #                 for col in range((j//3) * 3, ((j//3) * 3) + 3):
-                        
-                # for row in range(((i//3) * 3) + 3, 9):
-                #     if self.layout[row][j].val != 0:
-                #         continue
-                #     if val in self.layout[row][j].note and self.singleColCheck([(i, j),(row, j)], currVal):
-                #         currCol += [(row, j)]
-                #         break
-                # if len(currCol != 2):
-                #     continue
-                # for row in range(9):
-                #     if ((i//3) * 3) <= row < (((i//3) * 3) + 3):
-                #         continue
-                #     for col in range(9):
-                #         if val in self.layout[row][col].note:
-                            
-        #     for i in range(row,9)
-        # for j in range(col + 1, 9):
-        #     if self.layout[row][j].val != 0:
-        #         continue
-        #     if val in self.layout[row][j].note and self.singleRowCheck([coords, (row, j)], val):
-        #         potCol.append(j)
-        # if len(potCol) == 0:
-        #     return (False, coords)
-        # for i in range(row + 1, 9):
-        #     if self.layout[i][col].val != 0:
-        #         continue
-        #     if val in self.layout[i][col].note:
-        #         potRow.append(i)
-        # if len(potRow) == 0:
-        #     return (False, coords)
-        # for i in potRow:
-        #     for j in potCol:
-        #         if self.layout[i][j].val != 0:
-        #             continue
-        #         if val in self.layout[i][j].note:
-        #             goodSquare.append([coords, (row, j), (i, col), (i,j)])
-        # if len(goodSquare) == 0:
-        #     return (False, coords)
-        # return (True, goodSquare[len(goodSquare) - 1])
-                    
-                    
+            self.quadFirework(set(combo1), set(combo2), tempCopy)
+            if not self.stuck(tempCopy):
+                return
+    def firework(self, combo, tempCopy):
+        for i in range(9):
+            for j in range(9):
+                if self.layout[i][j].val != 0:
+                    continue
+                tempSet = set(self.layout[i][j].note) - {0}
+                if not (combo <= tempSet):
+                    continue
+                rowOffset = (i//3) * 3
+                colOffset = (j//3) * 3
+                inCol = set()
+                outCol = dict()
+                inRow = set()
+                outRow = dict()
+                for col in range(9):
+                    tempSet = set(self.layout[i][col].note) - {0}
+                    if colOffset <= col < colOffset + 3:
+                        if col == j:
+                            continue
+                        inCol = inCol.union(set(tempSet & combo))
+                    else:
+                        if len(tempSet & combo) > 0:
+                            outCol[col] = set(tempSet & combo)
+                            colWing = col
+                if len(outCol) != 1 or outCol[colWing] | inCol != combo:
+                    continue
+                for row in range(9):
+                    tempSet = set(self.layout[row][j].note) - {0}
+                    if rowOffset <= row < rowOffset + 3:
+                        if row == i:
+                            continue
+                        inRow = inRow.union(set(tempSet & combo))
+                    else:
+                        if len(tempSet & combo) > 0:
+                            outRow[row] = set(tempSet & combo)
+                            rowWing = row
+                if len(outRow) != 1 or outRow[rowWing] | inRow != combo:
+                    continue
+                if len(outRow[rowWing]) < 3 and len(outCol[colWing]) < 3 and outRow[rowWing] == outCol[colWing]:
+                    continue
+                for eVal in range(1, 10):
+                    if eVal not in combo:
+                        self.layout[i][j].note[eVal-1] = 0
+                        self.layout[rowWing][j].note[eVal-1] = 0
+                        self.layout[i][colWing].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Combo: {combo} Root: {(i, j)}")
+                    print(f"colWing: {(i, colWing)}, inCol: {inCol}, outCol {outCol}")
+                    print(f"rowWing: {(rowWing, j)}, inRow: {inRow}, outRow {outRow}")
+                    if len(combo) == 3:
+                        print("Triple Firework")
+                    return
     
-    # attempts to solve individual value based on isolating the current node to what exists in the related squares rows and columnn
-    # it will return a true or a false based on if a certain value can be proved 
-    # def babySolve(self, x, i, j):
-    #     # if the value is not a possibility (not in the current notes), it will return False 
-    #     rowOffset = (i//3) * 3
-    #     colOffset = (j//3) * 3
-    #     # array of bools, represents the final return value
-    #     checkerBox = [False for _ in range(4)]
-    #     # inverset lists of the rows and columns that need checking
-    #     inverseRow = [x for x in range(rowOffset,rowOffset+3)]
-    #     inverseRow.remove(i)
-    #     inverseCol = [x for x in range(colOffset,colOffset+3)]
-    #     inverseCol.remove(j)
+    def quadFirework(self, combo1, combo2, tempCopy):
+        for i in range(9):
+            for j in range(9):
+                if self.layout[i][j].val != 0:
+                    continue
+                tempSet = set(self.layout[i][j].note) - {0}
+                if not (combo1 <= tempSet):
+                    continue
+                rowOffset1 = (i//3) * 3
+                colOffset1 = (j//3) * 3
+                inCol1 = set()
+                outCol1 = dict()
+                inRow1 = set()
+                outRow1 = dict()
+                for col in range(9):
+                    tempSet = set(self.layout[i][col].note) - {0}
+                    if colOffset1 <= col < colOffset1 + 3:
+                        if col == j:
+                            continue
+                        inCol1 = inCol1.union(set(tempSet & combo1))
+                    else:
+                        if len(tempSet & combo1) == 2:
+                            outCol1[col] = set(tempSet & combo1)
+                            colWing = col
+                if len(outCol1) != 1:
+                    continue
+                for row in range(9):
+                    tempSet = set(self.layout[row][j].note) - {0}
+                    if rowOffset1 <= row < rowOffset1 + 3:
+                        if row == i:
+                            continue
+                        inRow1 = inRow1.union(set(tempSet & combo1))
+                    else:
+                        if len(tempSet & combo1) == 2:
+                            outRow1[row] = set(tempSet & combo1)
+                            rowWing = row
+                if len(outRow1) != 1:
+                    continue
+                # first double firework found, now checking for other double firework
+                tempSet = set(self.layout[rowWing][colWing].note) - {0}
+                if not (combo2 <= tempSet):
+                    continue
+                rowOffset2 = (rowWing//3) * 3
+                colOffset2 = (colWing//3) * 3
+                inCol2 = set()
+                outCol2 = dict()
+                inRow2 = set()
+                outRow2 = dict()
+                for col in range(9):
+                    tempSet = set(self.layout[rowWing][col].note) - {0}
+                    if colOffset2 <= col < colOffset2 + 3:
+                        if col == colWing:
+                            continue
+                        inCol2 = inCol2.union(set(tempSet & combo2))
+                    else:
+                        if len(tempSet & combo2) > 0:
+                            outCol2[col] = set(tempSet & combo2)
+                            colWingCheck = col
+                if len(outCol2) != 1:
+                    continue
+                for row in range(9):
+                    tempSet = set(self.layout[row][colWing].note) - {0}
+                    if rowOffset2 <= row < rowOffset2 + 3:
+                        if row == rowWing:
+                            continue
+                        inRow2 = inRow2.union(set(tempSet & combo2))
+                    else:
+                        if len(tempSet & combo2) > 0:
+                            outRow2[row] = set(tempSet & combo2)
+                            rowWingCheck = row
+                if len(outRow2) != 1:
+                    continue
+                if (i, colWing) != (rowWingCheck, colWing) or (rowWing, j) != (rowWing, colWingCheck):
+                    continue
+                print(f"Combo1: {combo1} Root: {(i, j)}")
+                print(f"colWing: {(i, colWing)}, inCol: {inCol1}, outCol {outCol1}")
+                print(f"rowWing: {(rowWing, j)}, inRow: {inRow1}, outRow {outRow1}")
+                print(f"Combo2: {combo2} Root: {(rowWing, colWing)}")
+                print(f"colWing: {(rowWing, colWingCheck)}, inCol: {inCol2}, outCol {outCol2}")
+                print(f"rowWing: {(rowWingCheck, colWing)}, inRow: {inRow2}, outRow {outRow2}")
+                safeSet = combo1 | combo2
+                for eVal in range(1, 10):
+                    if eVal not in safeSet:
+                        self.layout[i][colWing].note[eVal-1] = 0
+                        self.layout[rowWing][j].note[eVal-1] = 0
+                    if eVal not in combo1:
+                        self.layout[i][j].note[eVal-1] = 0
+                    if eVal not in combo2:
+                        self.layout[rowWing][colWing].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    return
+                
+    # ********************************************************************************************************************
+    def twinXYChains(self):
+        tempCopy = copy.deepcopy(self)
+        for i in range(9):
+            for j in range(9):
+                if self.layout[i][j].val != 0:
+                    continue
+                startSet = set(self.layout[i][j].note) - {0}
+                if len(startSet) != 3:
+                    continue
+                goodChain = self.getXYChainHoz((i, j))
+                if len(goodChain) != 6:
+                    goodChain = self.getXYChainVert((i, j))
+                if len(goodChain) == 6:
+                    rows = set()
+                    cols = set()
+                    for x, y in goodChain:
+                        rows.add(x)
+                        cols.add(y)
+                    rowNodes = {row: set() for row in rows}
+                    colNodes = {col: set() for col in cols}
+                    for row in rowNodes:
+                        for x, y in goodChain:
+                            if row == x:
+                                rowNodes[row].add((x, y))
+                    for col in colNodes:
+                        for x, y in goodChain:
+                            if col == y:
+                                colNodes[col].add((x, y))
+                    for row, coords in rowNodes.items():
+                        sets = [set(self.layout[r][c].note) - {0} for (r, c) in coords]
+                        common = set()
+                        if len(coords) == 2:
+                            common |= sets[0] & sets[1]
+                        if len(coords) == 3:
+                            common |= (sets[0] & sets[1]) | (sets[1] & sets[2]) | (sets[0] & sets[2])
+                        self.subUpdateNotes('row', list(coords), common)
+                    for col, coords in colNodes.items():
+                        sets = [set(self.layout[r][c].note) - {0} for (r, c) in coords]
+                        common = set()
+                        if len(coords) == 2:
+                            common |= sets[0] & sets[1]
+                        if len(coords) == 3:
+                            common |= (sets[0] & sets[1]) | (sets[1] & sets[2]) | (sets[0] & sets[2])
+                        self.subUpdateNotes('col', list(coords), common)
+                    if not self.stuck(tempCopy):
+                        print(f"XY Chain: {goodChain}")
+                        return
+    def getXYChainHoz(self, currentCoords):
+        i, j = currentCoords
+        tempSet = set(self.layout[i][j].note) - {0}
+        for col1 in range(9):
+            if col1 == j:
+                continue
+            tempSet1 = set(self.layout[i][col1].note) - {0}
+            if len(tempSet | tempSet1) > 4 or len(tempSet1) not in (2,3):
+                continue
+            for col2 in range(9):
+                if col2 in (j, col1):
+                    continue
+                tempSet2 = set(self.layout[i][col2].note) - {0}
+                if len(tempSet | tempSet1 | tempSet2) > 5 or len(tempSet2) not in (2,3):
+                    continue
+                common = (tempSet & tempSet1) | (tempSet & tempSet2) | (tempSet1 & tempSet2)
+                if len(common) < 2:
+                    continue
+                for row in range(9):
+                    if row == i:
+                        continue
+                    tempSet3 = set(self.layout[row][j].note) - {0}
+                    tempSet4 = set(self.layout[row][col1].note) - {0}
+                    tempSet5 = set(self.layout[row][col2].note) - {0}
+                    if len(tempSet3) != 2 or len(tempSet4) != 2 or len(tempSet5) != 2 or len(tempSet3 | tempSet4 | tempSet5) < 1:
+                        continue
+                    common = (tempSet3 & tempSet4) | (tempSet3 & tempSet5) | (tempSet4 & tempSet5)
+                    if len(tempSet | tempSet1 | tempSet2 | tempSet3 | tempSet4 | tempSet5) != 6 or len(common) != 1:
+                        continue
+                    finalList = [currentCoords, (row, j), (i, col1), (row, col1), (i, col2), (row, col2)]
+                    note_sets = [frozenset(set(self.layout[r][c].note) - {0}) for r, c in finalList]
+                    if len(note_sets) == len(set(note_sets)):
+                        return finalList
+        return [currentCoords]
+        
+    def getXYChainVert(self, currentCoords):
+        i, j = currentCoords
+        tempSet = set(self.layout[i][j].note) - {0}
+        for row1 in range(9):
+            if row1 == i:
+                continue
+            tempSet1 = set(self.layout[row1][j].note) - {0}
+            if len(tempSet | tempSet1) > 4 or len(tempSet1) not in (2,3):
+                continue
+            for row2 in range(9):
+                if row2 in (i, row1):
+                    continue
+                tempSet2 = set(self.layout[row2][j].note) - {0}
+                if len(tempSet | tempSet1 | tempSet2) > 5 or len(tempSet2) not in (2,3):
+                    continue
+                common = (tempSet & tempSet1) | (tempSet & tempSet2) | (tempSet1 & tempSet2)
+                if len(common) < 2:
+                    continue
+                for col in range(9):
+                    if col == j:
+                        continue
+                    tempSet3 = set(self.layout[i][col].note) - {0}
+                    tempSet4 = set(self.layout[row1][col].note) - {0}
+                    tempSet5 = set(self.layout[row2][col].note) - {0}
+                    if len(tempSet3) != 2 or len(tempSet4) != 2 or len(tempSet5) != 2 or len(tempSet3 | tempSet4 | tempSet5) < 1:
+                        continue
+                    common = (tempSet3 & tempSet4) | (tempSet3 & tempSet5) | (tempSet4 & tempSet5)
+                    if len(tempSet | tempSet1 | tempSet2 | tempSet3 | tempSet4 | tempSet5) != 6 or len(common) != 1:
+                        continue
+                    finalList = [currentCoords, (i, col), (row1, j), (row1, col), (row2, j), (row2, col)]
+                    note_sets = [frozenset(set(self.layout[r][c].note) - {0}) for r, c in finalList]
+                    if len(note_sets) == len(set(note_sets)):
+                        return finalList
+        return [currentCoords]
+    # ********************************************************************************************************************
+    def SKLoops(self):
+        tempCopy = copy.deepcopy(self)
+        for tl, tr, bl, br in self.getDiagonalSymSquares():
+            coordSet = {tl, tr, bl, br}
+            if any(self.layout[r][c].val == 0 for (r,c) in coordSet):
+                continue
+            hozVals = {(x, y): set() for (x,y) in coordSet}
+            verVals = {(x, y): set() for (x,y) in coordSet}
+            sHozCellVals = {(x,y): set() for (x,y) in coordSet}
+            sVerCellVals = {(x,y): set() for (x,y) in coordSet}
+            for x, y in coordSet:
+                rowOffset = (x//3) * 3
+                colOffset = (y//3) * 3
+                checkCol = set()
+                checkRow = set()
+                filledCount = 0
+                for col in range(colOffset, colOffset + 3):
+                    if col == y: 
+                        continue
+                    tempSet = set(self.layout[x][col].note) - {0}
+                    hozVals[(x, y)] |= tempSet
+                    checkCol.add((x, col))
+                    if len(tempSet) == 0:
+                        filledCount += 1
+                for row in range(rowOffset, rowOffset + 3):
+                    if row == x:
+                        continue
+                    tempSet = set(self.layout[row][y].note) - {0}
+                    verVals[(x, y)] |= tempSet
+                    checkRow.add((row, y))
+                    if len(tempSet) == 0:
+                        filledCount += 1
+                if filledCount < 2:
+                    for val in hozVals[(x, y)]:
+                        if all(val in (set(self.layout[a][b].note) - {0}) for a, b in checkCol) or not all(self.layout[a][b].val == 0 for a, b in coordSet):
+                            sHozCellVals[(x, y)].add(val)
+                    for val in verVals[(x, y)]:
+                        if all(val in (set(self.layout[a][b].note) - {0}) for a, b in checkRow) or not all(self.layout[a][b].val == 0 for a, b in coordSet):
+                            sVerCellVals[(x, y)].add(val)
+                else:
+                    break
+            if filledCount > 1:
+                continue
+            # for node in coordSet:
+            #     print(f"{node}:\n HozVals {hozVals[node]}. SHozVals {sHozCellVals[node]}.\nVerVals {verVals[node]} \n")
+            linkCount = 0
+            totalCount1 = 0 # blue
+            totalCount2 = 0 # green
+            boxStrongVals = {(a, b): set() for a, b in coordSet}
+            sHozPairVals = {((a, b), (x, y)): set(sHozCellVals[(a, b)] & sHozCellVals[(x, y)]) for (a, b), (x, y) in itertools.combinations(coordSet, 2) if a == x}
+            sVerPairVals = {((a, b), (x, y)): set(sVerCellVals[(a, b)] & sVerCellVals[(x, y)]) for (a, b), (x, y) in itertools.combinations(coordSet, 2) if b == y}
+            flip = True
+            for ((a, b), (x, y)), vals in sHozPairVals.items():
+                if len(vals) > 0:
+                    linkCount += 1
+                if flip:
+                    flip = False
+                    totalCount1 += len(hozVals[x, y])
+                    totalCount2 += len(hozVals[a, b])
+                else:
+                    flip = True
+                    totalCount1 += len(hozVals[a, b])
+                    totalCount2 += len(hozVals[x, y])
+            for ((a, b), (x, y)), vals in sVerPairVals.items():
+                if len(vals) > 0:
+                    linkCount += 1
+                if flip:
+                    flip = False
+                    totalCount1 += len(verVals[a, b])
+                    totalCount2 += len(verVals[x, y])
+                else:
+                    flip = True
+                    totalCount1 += len(verVals[x, y])
+                    totalCount2 += len(verVals[a, b])
+            for x in coordSet:
+                if len(hozVals[x] & verVals[x]) > 1:
+                    linkCount += 1
+            # print(f"LinkCount: {linkCount}")
+            # print(f"totalCount1: {totalCount1}")
+            # print(f"totalCount2: {totalCount2}")
+            if linkCount != 8 or totalCount1 > 16 or totalCount2 > 16:
+                # print("Bad counts")
+                continue
+            # print(f"good cycle {coordSet}")
+            # erasing time!
+            for (a, b) in coordSet:
+                eVals = hozVals[(a, b)] | verVals[(a, b)]
+                for (x, y) in coordSet:
+                    if ((a, b), (x, y)) in sHozPairVals:
+                        eVals -= sHozPairVals[((a, b), (x, y))]
+                    if ((x, y), (a, b)) in sHozPairVals:
+                        eVals -= sHozPairVals[((x, y), (a, b))]
+                    if ((a, b), (x, y)) in sVerPairVals:
+                        eVals -= sVerPairVals[((a, b), (x, y))]
+                    if ((x, y), (a, b)) in sVerPairVals:
+                        eVals -= sVerPairVals[((x, y), (a, b))]
+                rowOffset = (a//3) * 3
+                colOffset = (b//3) * 3
+                ignore = set()
+                for row in range(rowOffset, rowOffset + 3):
+                    ignore.add((row, b))
+                for col in range(colOffset, colOffset + 3):
+                    ignore.add((a, col))
+                self.subUpdateNotes('box', list(ignore), eVals)
+                # print(f"Node: {(a, b)}\nIgnore Nodes: {ignore}\nErasing {eVals}\n")
+            for (a, b), (x, y) in sHozPairVals:
+                if a != x:
+                    continue
+                ignore = set()
+                colOffset1 = (b//3) * 3
+                colOffset2 = (y//3) * 3
+                for col in range(9):
+                    if colOffset1 <= col < colOffset1 + 3 or colOffset2 <= col < colOffset2 + 3:
+                        ignore.add((a, col))
+                eVals = set(hozVals[(a, b)] & hozVals[(x, y)])
+                self.subUpdateNotes('row', list(ignore), sHozPairVals[((a, b), (x, y))])
+                # print(f"Nodes: {(a, b), (x, y)}\nIgnore Nodes: {ignore}\nErasing {eVals}\n")
+            for (a, b), (x, y) in sVerPairVals:
+                if b != y:
+                    continue
+                ignore = set()
+                rowOffset1 = (a//3) * 3
+                rowOffset2 = (x//3) * 3
+                for row in range(9):
+                    if rowOffset1 <= row < rowOffset1 + 3 or rowOffset2 <= row < rowOffset2 + 3:
+                        ignore.add((row, b))
+                self.subUpdateNotes('col', list(ignore), sVerPairVals[((a, b), (x, y))])
+                # print(f"Nodes: {(a, b), (x, y)}\nIgnore Nodes: {ignore}\nErasing {eVals}\n")
+            if not self.stuck(tempCopy):
+                print(f"Found SK loop {coordSet}")
+                return
+                
+    def getDiagonalSymSquares(self):
+        squares = []
+        fourCorners = {(0, 0), (0, 2), (2, 0), (2, 2)}
+        for r1 in range(9):
+            for r2 in range(r1 + 1, 9):
+                for c1 in range(9):
+                    for c2 in range(c1 + 1, 9):
+                        TL = (r1, c1)
+                        TR = (r1, c2)
+                        BL = (r2, c1)
+                        BR = (r2, c2)
+                        if (self.layout[r1][c1].val == 0 or
+                            self.layout[r1][c2].val == 0 or
+                            self.layout[r2][c1].val == 0 or
+                            self.layout[r2][c2].val == 0):
+                            continue
+                        boxes = {
+                            (r1 // 3, c1 // 3),
+                            (r1 // 3, c2 // 3),
+                            (r2 // 3, c1 // 3),
+                            (r2 // 3, c2 // 3)
+                        }
+                        if len(boxes) != 4:
+                            continue
+                        rel_pos = [
+                            (r1 % 3) * 3 + (c1 % 3),
+                            (r1 % 3) * 3 + (c2 % 3),
+                            (r2 % 3) * 3 + (c1 % 3),
+                            (r2 % 3) * 3 + (c2 % 3)
+                        ]
+                        if len(set(rel_pos)) == 1:
+                            squares.append([TL, TR, BL, BR])
+                            continue
+                        normalized = {(r - ((r//3) * 3), c - ((c//3) * 3)) for r, c in [TL, TR, BL, BR]}
+                        if len(normalized & fourCorners) == 4:
+                            squares.append([TL, TR, BL, BR])
+                            continue
+        return squares
+    # ********************************************************************************************************************
+    def extUniqueRectanglesUtil(self):
+        tempCopy = copy.deepcopy(self)
+        remaining = {v for r in range(9) for c in range(9) for v in self.layout[r][c].note if v != 0}
+        for combo in itertools.combinations(remaining, 3):
+            self.extUniqueRectangles(set(combo), tempCopy)
+            if not self.stuck(tempCopy):
+                return
+    def extUniqueRectangles(self, combo, tempCopy):
+        rowSets = set()
+        colSets = set()
+        for row in range(9):
+            matchingCols = [c for c in range(9) if set(self.layout[row][c].note) - {0} == combo or len((set(self.layout[row][c].note) - {0}) & combo) == 2]
+            for c1, c2 in itertools.combinations(matchingCols, 2):
+                tempSet1 = set(self.layout[row][c1].note) - {0}
+                tempSet2 = set(self.layout[row][c2].note) - {0}
+                if len(tempSet1 | tempSet2) > 0 and tempSet1 == tempSet2 and self.inBox([(row, c1), (row, c2)]):
+                    pair = frozenset(((row, c1), (row, c2)))
+                    rowSets.add(pair)
+        for col in range(9):
+            matchingRows = [r for r in range(9) if set(self.layout[r][col].note) - {0} == combo or len((set(self.layout[r][col].note) - {0}) & combo) == 2]
+            for r1, r2 in itertools.combinations(matchingRows, 2):
+                tempSet1 = set(self.layout[r1][col].note) - {0}
+                tempSet2 = set(self.layout[r2][col].note) - {0}
+                if len(tempSet1 | tempSet2) > 0 and tempSet1 == tempSet2 and self.inBox([(r1, col), (r2, col)]):
+                    pair = frozenset(((r1, col), (r2, col)))
+                    colSets.add(pair)
+                    
+        for ((a, b), (x, y)) in rowSets:
+            # print(f"{combo}: {((a, b), (x, y))}")
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[x][y].note) - {0}
+            rowOffset1 = (a//3) * 3 
+            for row2 in range(9):
+                if rowOffset1 <= row2 < rowOffset1 + 3:
+                    continue
+                tempSet3 = set(self.layout[row2][b].note) - {0}
+                tempSet4 = set(self.layout[row2][y].note) - {0}
+                if len(tempSet3 & tempSet4 & combo) < 2:
+                    continue
+                rowOffset2 = (row2//3) * 3 
+                for row3 in range(9):
+                    if rowOffset1 <= row3 < rowOffset1 + 3 or rowOffset2 <= row3 < rowOffset2 + 3:
+                        continue
+                    tempSet5 = set(self.layout[row3][b].note) - {0}
+                    tempSet6 = set(self.layout[row3][y].note) - {0}
+                    if len(tempSet5 & tempSet6 & combo) < 2:
+                        continue
+                    if combo <= (tempSet1 & tempSet2) | (tempSet3 & tempSet4) | (tempSet5 & tempSet6):
+                        goodGroup = [(a, b), (x, y), (row2, b), (row2, y), (row3, b), (row3, y)]
+                        getAlters = {(c, d): set(self.layout[c][d].note) - {0} - combo for c, d in goodGroup}
+                        eCells = []
+                        for (c, d), vals in getAlters.items():
+                            if len(vals) > 0:
+                                eCells.append((c, d))
+                        if len(eCells) == 1:
+                            ex1, ey1 = eCells[0]
+                            for val in combo:
+                                self.layout[ex1][ey1].note[val-1] = 0
+                            if not self.stuck(tempCopy):
+                                print(goodGroup)
+                                print(f"Extended Rectangles Row Type 1 removed {combo} from {(ex1, ey1)}")
+                                return
+                            
+        for ((a, b), (x, y)) in colSets:
+            # print(f"{combo}: {((a, b), (x, y))}")
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[x][y].note) - {0}
+            colOffset1 = (b//3) * 3
+            for col2 in range(9):
+                if colOffset1 <= col2 < colOffset1 + 3:
+                    continue
+                tempSet3 = set(self.layout[a][col2].note) - {0}
+                tempSet4 = set(self.layout[x][col2].note) - {0}
+                if len(tempSet3 & tempSet4 & combo) < 2:
+                    continue
+                colOffset2 = (col2//3) * 3 
+                for col3 in range(9):
+                    if colOffset1 <= col3 < colOffset1 + 3 or colOffset2 <= col3 < colOffset2 + 3:
+                        continue
+                    tempSet5 = set(self.layout[a][col3].note) - {0}
+                    tempSet6 = set(self.layout[x][col3].note) - {0}
+                    if len(tempSet5 & tempSet6 & combo) < 2:
+                        continue
+                    if combo <= (tempSet1 & tempSet2) | (tempSet3 & tempSet4) | (tempSet5 & tempSet6):
+                        goodGroup = [(a, b), (x, y), (a, col2), (x, col2), (a, col3), (x, col3)]
+                        getAlters = {(c, d): set(self.layout[c][d].note) - {0} - combo for c, d in goodGroup}
+                        eCells = []
+                        for (c, d), vals in getAlters.items():
+                            if len(vals) > 0:
+                                eCells.append((c, d))
+                        if len(eCells) == 1:
+                            ex1, ey1 = eCells[0]
+                            for val in combo:
+                                self.layout[ex1][ey1].note[val-1] = 0
+                            if not self.stuck(tempCopy):
+                                print(goodGroup)
+                                print(f"Extended Rectangles Row Type 1 removed {combo} from {(ex1, ey1)}")
+                                return
 
-    #     for a in inverseRow:
-    #         # Very easily can add a boxlocked[a][b]-or conditional
-    #         if self.layout[a][colOffset].val != 0 and self.layout[a][colOffset + 1].val != 0 and self.layout[a][colOffset + 2].val != 0:
-    #             checkerBox[inverseRow.index(a)] = True
-    #     for a in inverseCol:
-    #         # Very easily can add a boxlocked[a][b]-or conditional
-    #         if self.layout[rowOffset][a].val != 0 and self.layout[rowOffset + 1][a].val != 0 and self.layout[rowOffset + 2][a].val != 0:
-    #             checkerBox[inverseCol.index(a) + 2] = True
+        for ((a, b), (x, y)) in rowSets:
+            # print(f"{combo}: {((a, b), (x, y))}")
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[x][y].note) - {0}
+            if len(tempSet1 & tempSet2 & combo) != 3 or tempSet1 != tempSet2 or len(tempSet1) != 3:
+                continue
+            rowOffset1 = (a//3) * 3 
+            for row2 in range(9):
+                if rowOffset1 <= row2 < rowOffset1 + 3:
+                    continue
+                tempSet3 = set(self.layout[row2][b].note) - {0}
+                tempSet4 = set(self.layout[row2][y].note) - {0}
+                if len(tempSet3 & tempSet4 & combo) < 2 or not (combo <= tempSet1 | tempSet2 | tempSet3 | tempSet4):
+                    continue
+                rowOffset2 = (row2//3) * 3
+                for row3 in range(9):
+                    if rowOffset1 <= row3 < rowOffset1 + 3 or rowOffset2 <= row3 < rowOffset2 + 3:
+                        continue
+                    tempSet5 = set(self.layout[row3][b].note) - {0}
+                    tempSet6 = set(self.layout[row3][y].note) - {0}
+                    if tempSet5 != tempSet6 or len(tempSet5 & tempSet6) != 4 or not (combo <= tempSet5 | tempSet6):
+                        continue
+                    eVal = (tempSet5 - combo).pop()
+                    ignoreCells = [(row3, b), (row3, y)]
+                    self.subUpdateNotes('box', ignoreCells, {eVal})
+                    self.subUpdateNotes('row', ignoreCells, {eVal})
+                    if not self.stuck(tempCopy):
+                        goodGroup = [(a, b), (x, y), (row2, b), (row2, y), (row3, b), (row3, y)]
+                        print(goodGroup)
+                        print(f"Extended Rectangles Row Type 2 removed {eVal} from box and row with {ignoreCells}")
+                        return
+                        
+        for ((a, b), (x, y)) in colSets:
+            # print(f"{combo}: {((a, b), (x, y))}")
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[x][y].note) - {0}
+            if len(tempSet1 & tempSet2 & combo) != 3 or tempSet1 != tempSet2 or len(tempSet1) != 3:
+                continue
+            colOffset1 = (b//3) * 3 
+            for col2 in range(9):
+                if colOffset1 <= col2 < colOffset1 + 3:
+                    continue
+                tempSet3 = set(self.layout[a][col2].note) - {0}
+                tempSet4 = set(self.layout[x][col2].note) - {0}
+                if len(tempSet3 & tempSet4 & combo) < 2 or not (combo <= tempSet1 | tempSet2 | tempSet3 | tempSet4):
+                    continue
+                colOffset2 = (col2//3) * 3
+                for col3 in range(9):
+                    if colOffset1 <= col3 < colOffset1 + 3 or colOffset2 <= col3 < colOffset2 + 3:
+                        continue
+                    tempSet5 = set(self.layout[a][col3].note) - {0}
+                    tempSet6 = set(self.layout[x][col3].note) - {0}
+                    if tempSet5 != tempSet6 or len(tempSet5 & tempSet6) != 4 or not (combo <= tempSet5 | tempSet6):
+                        continue
+                    eVal = (tempSet5 - combo).pop()
+                    ignoreCells = [(a, col3), (x, col3)]
+                    self.subUpdateNotes('box', ignoreCells, {eVal})
+                    self.subUpdateNotes('row', ignoreCells, {eVal})
+                    if not self.stuck(tempCopy):
+                        goodGroup = [(a, b), (x, y), (a, col2), (x, col2), (a, col3), (x, col3)]
+                        print(goodGroup)
+                        print(f"Extended Rectangles Col Type 2 removed {eVal} from box and col with {ignoreCells}")
+                        return
 
-    #     for p in range(4):
-    #         if checkerBox[p]:
-    #             continue
-    #         if p < 2:
-    #             temp = []
-    #             for a in range(9):
-    #                 if colOffset <= a < colOffset + 3:
-    #                     continue
-    #                 temp.append(self.layout[inverseRow[p]][a].val)
-    #             if x in temp:
-    #                 checkerBox[p] = True
-    #         else:
-    #             temp = []
-    #             for a in range(9):
-    #                 if rowOffset <= a < rowOffset + 3:
-    #                     continue
-    #                 temp.append(self.layout[a][inverseCol[p - 2]].val)
-    #             if x in temp:
-    #                 checkerBox[p] = True
-    #     if False in checkerBox:
-    #         return False
-    #     print(f"found {x} at {i} {j}")
-    #     return True                    
-
-    # def babySolveUser(self):
+        for ((a, b), (x, y)) in rowSets:
+            # print(f"{combo}: {((a, b), (x, y))}")
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[x][y].note) - {0}
+            if len(tempSet1 & tempSet2 & combo) != 2 or tempSet1 != tempSet2 or len(tempSet1) != 2:
+                continue
+            rowOffset1 = (a//3) * 3 
+            for row2 in range(9):
+                if rowOffset1 <= row2 < rowOffset1 + 3:
+                    continue
+                tempSet3 = set(self.layout[row2][b].note) - {0}
+                tempSet4 = set(self.layout[row2][y].note) - {0}
+                if len(tempSet3 & tempSet4 & combo) != 2 or tempSet3 != tempSet4 or len(tempSet3) != 2 or not (combo <= tempSet1 | tempSet2 | tempSet3 | tempSet4):
+                    continue
+                goalSet = combo - (tempSet1 & tempSet3)
+                rowOffset2 = (row2//3) * 3
+                for row3 in range(9):
+                    if rowOffset1 <= row3 < rowOffset1 + 3 or rowOffset2 <= row3 < rowOffset2 + 3:
+                        continue
+                    tempSet5 = set(self.layout[row3][b].note) - {0}
+                    tempSet6 = set(self.layout[row3][y].note) - {0}
+                    if not (goalSet <= tempSet5) or not (goalSet <= tempSet6):
+                        continue
+                    eVal = 0
+                    for val in goalSet:
+                        if self.singleColCheck([(a, b), (row2, b), (row3, b)], {val}) and self.singleColCheck([(x, y), (row2, y), (row3, y)], {val}):
+                            continue
+                        eVal = val
+                    if eVal == 0:
+                        continue
+                    self.layout[row3][b].note[eVal-1] = 0
+                    self.layout[row3][x].note[eVal-1] = 0
+                    if not self.stuck(tempCopy):
+                        goodGroup = [(a, b), (x, y), (row2, b), (row2, y), (row3, b), (row3, y)]
+                        print(goodGroup)
+                        print(f"Extended Rectangles Row Type 4 removed {eVal} from box and row with {(row3, b), (row3, y)}")
+                        return
+                        
+        for ((a, b), (x, y)) in colSets:
+            # print(f"{combo}: {((a, b), (x, y))}")
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[x][y].note) - {0}
+            if len(tempSet1 & tempSet2 & combo) != 2 or tempSet1 != tempSet2 or len(tempSet1) != 2:
+                continue
+            colOffset1 = (b//3) * 3 
+            for col2 in range(9):
+                if colOffset1 <= col2 < colOffset1 + 3:
+                    continue
+                tempSet3 = set(self.layout[a][col2].note) - {0}
+                tempSet4 = set(self.layout[x][col2].note) - {0}
+                if len(tempSet3 & tempSet4 & combo) != 2 or tempSet3 != tempSet4 or len(tempSet3) != 2 or not (combo <= tempSet1 | tempSet2 | tempSet3 | tempSet4):
+                    continue
+                goalSet = combo - (tempSet1 & tempSet3)
+                colOffset2 = (col2//3) * 3
+                for col3 in range(9):
+                    if colOffset1 <= col3 < colOffset1 + 3 or colOffset2 <= col3 < colOffset2 + 3:
+                        continue
+                    tempSet5 = set(self.layout[a][col3].note) - {0}
+                    tempSet6 = set(self.layout[x][col3].note) - {0}
+                    if not (goalSet <= tempSet5) or not (goalSet <= tempSet6):
+                        continue
+                    eVal = 0
+                    for val in goalSet:
+                        if self.singleRowCheck([(a, b), (a, col2), (a, col3)], {val}) and self.singleRowCheck([(x, y), (x, col2), (x, col3)], {val}):
+                            continue
+                        eVal = val
+                    if eVal == 0:
+                        continue
+                    self.layout[a][col3].note[eVal-1] = 0
+                    self.layout[x][col3].note[eVal-1] = 0
+                    if not self.stuck(tempCopy):
+                        goodGroup = [(a, b), (x, y), (a, col2), (x, col2), (a, col3), (x, col3)]
+                        print(goodGroup)
+                        print(f"Extended Rectangles Col Type 4 removed {eVal} from box and row with {(a, col3), (x, col3)}")
+                        return
+    # ********************************************************************************************************************
+    def hiddenUniqueRectanglesUtil(self):
+        tempCopy = copy.deepcopy(self)
+        remaining = {v for r in range(9) for c in range(9) for v in self.layout[r][c].note if v != 0}
+        for combo in itertools.combinations(remaining, 2):
+            self.hiddenUniqueRectangles(set(combo), tempCopy)
+            if not self.stuck(tempCopy):
+                return
+    def hiddenUniqueRectangles(self, combo, tempCopy):
+        rowSets = set()
+        colSets = set()
+        for row in range(9):
+            matchingCols = [c for c in range(9) if combo <= set(self.layout[row][c].note) - {0}]
+            for c1, c2 in itertools.combinations(matchingCols, 2):
+                pair = frozenset(((row, c1), (row, c2)))
+                rowSets.add(pair)
+        for col in range(9):
+            matchingRows = [r for r in range(9) if combo <= set(self.layout[r][col].note) - {0}]
+            for r1, r2 in itertools.combinations(matchingRows, 2):
+                pair = frozenset(((r1, col), (r2, col)))
+                colSets.add(pair)
+        # type 1 Row
+        for ((a, b), (c, d)) in rowSets:
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[c][d].note) - {0}
+            if not(len(tempSet1) != 2 ^ len(tempSet2) != 2) or not self.inBox([(a, b), (c, d)]) or len(tempSet1) == 0 or len(tempSet2) == 0:
+                continue
+            rowOffset = (a//3) * 3
+            for row in range(9):
+                if rowOffset <= row < rowOffset + 3 or frozenset(((row, b), (row, d))) not in rowSets:
+                    continue
+                vals = []
+                if len(tempSet1) == 2:
+                    for val in tempSet1:
+                        if self.singleRowCheck([(row, d), (row, b)], {val}) and self.singleColCheck([(row, d), (c, d)], {val}):
+                            vals.append(val)
+                    if len(vals) == 1:
+                        eVal = (combo - set(vals)).pop()
+                        self.layout[row][d].note[eVal-1] = 0
+                elif len(tempSet2) == 2:
+                    for val in tempSet2:
+                        if self.singleRowCheck([(row, b), (row, d)], {val}) and self.singleColCheck([(row, b), (a, b)], {val}):
+                            vals.append(val)
+                    if len(vals) == 1:
+                        eVal = (combo - set(vals)).pop()
+                        self.layout[row][b].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Hidden Unique Rectangles Row Type 1 removed {eVal} at either {(row, b)} or {(row, d)}")
+                    return
+        # type 1 Col
+        for ((a, b), (c, d)) in colSets:
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[c][d].note) - {0}
+            if not(len(tempSet1) != 2 ^ len(tempSet2) != 2) or not self.inBox([(a, b), (c, d)]) or len(tempSet1) == 0 or len(tempSet2) == 0:
+                continue
+            colOffset = (b//3) * 3
+            for col in range(9):
+                if colOffset <= col < colOffset + 3 or frozenset(((a, col), (c, col))) not in rowSets:
+                    continue
+                vals = []
+                if len(tempSet1) == 2:
+                    for val in tempSet1:
+                        if self.singleColCheck([(c, col), (a, col)], {val}) and self.singleRowCheck([(c, col), (c, d)], {val}):
+                            vals.append(val)
+                    if len(vals) == 1:
+                        eVal = (combo - set(vals)).pop()
+                        self.layout[c][col].note[eVal-1] = 0
+                elif len(tempSet2) == 2:
+                    for val in tempSet2:
+                        if self.singleColCheck([(a, col), (c, col)], {val}) and self.singleRowCheck([(a, col), (a, b)], {val}):
+                            vals.append(val)
+                    if len(vals) == 1:
+                        eVal = (combo - set(vals)).pop()
+                        self.layout[a][col].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Hidden Unique Rectangles Col Type 1 removed {eVal} at either {(a, col)} or {(c, col)}")
+                    return
+        # Type 2a Row
+        for ((a, b), (c, d)) in rowSets:
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[c][d].note) - {0}
+            if not (len(tempSet1) == 2 and len(tempSet2) == 2) or tempSet1 != tempSet2 or not self.inBox([(a, b), (c, d)]):
+                continue
+            rowOffset = (a//3) * 3
+            for row in range(9):
+                if rowOffset <= row < rowOffset + 3 or frozenset(((row, b), (row, d))) not in rowSets:
+                    continue
+                for val in tempSet1:
+                    eVal = (combo - {val}).pop()
+                    if self.singleColCheck([(a, b), (row, b)], {val}):
+                        self.layout[row][d].note[eVal-1] = 0
+                    if self.singleColCheck([(c, d), (row, d)], {val}):
+                        self.layout[row][b].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Hidden Unique Rectangles Row Type 2a removed some of {combo} from either {(row, b)} or {(row, d)}")
+                    return
+        # Type 2a Col
+        for ((a, b), (c, d)) in colSets:
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[c][d].note) - {0}
+            if not (len(tempSet1) == 2 and len(tempSet2) == 2) or tempSet1 != tempSet2  or not self.inBox([(a, b), (c, d)]):
+                continue
+            colOffset = (b//3) * 3
+            for col in range(9):
+                if colOffset <= col < colOffset + 3 or frozenset(((a, col), (c, col))) not in colSets:
+                    continue
+                for val in tempSet1:
+                    eVal = (combo - {val}).pop()
+                    if self.singleRowCheck([(a, b), (a, col)], {val}):
+                        self.layout[c][col].note[eVal-1] = 0
+                    if self.singleRowCheck([(c, d), (c, col)], {val}):
+                        self.layout[a][col].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Hidden Unique Rectangles Col Type 2a removed some of {combo} from either {(a, col)} or {(c, col)}")
+                    return
+        # Type 2b Row
+        for ((a, b), (c, d)) in rowSets:
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[c][d].note) - {0}
+            if not (len(tempSet1) == 2 and len(tempSet2) == 2) or tempSet1 != tempSet2 or self.inBox([(a, b), (c, d)]):
+                continue
+            rowOffset = (a//3) * 3
+            for row in range(rowOffset, rowOffset + 3):
+                if row == a or frozenset(((row, b), (row, d))) not in rowSets:
+                    continue
+                print(f"BasePair: {(a, b), (c, d)}. Comparing to: {(row, b), (row, d)}")
+                for val in tempSet1:
+                    eVal = (combo - {val}).pop()
+                    if self.singleColCheck([(a, b), (row, b)], {val}) and self.singleBoxCheck([(a, b), (row, b)], {val}):
+                        self.layout[row][d].note[eVal-1] = 0
+                    if self.singleColCheck([(c, d), (row, d)], {val}) and self.singleBoxCheck([(c, d), (row, d)], {val}):
+                        self.layout[row][b].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Hidden Unique Rectangles Row Type 2b removed some of {combo} from either {(row, b)} or {(row, d)}")
+                    return
+        # Type 2b Col
+        for ((a, b), (c, d)) in colSets:
+            tempSet1 = set(self.layout[a][b].note) - {0}
+            tempSet2 = set(self.layout[c][d].note) - {0}
+            if not (len(tempSet1) == 2 and len(tempSet2) == 2) or tempSet1 != tempSet2  or self.inBox([(a, b), (c, d)]):
+                continue
+            colOffset = (b//3) * 3
+            for col in range(colOffset, colOffset + 3):
+                if b == col or frozenset(((a, col), (c, col))) not in colSets:
+                    continue
+                for val in tempSet1:
+                    eVal = (combo - {val}).pop()
+                    if self.singleRowCheck([(a, b), (a, col)], {val}) and self.singleBoxCheck([(a, b), (a, col)], {val}):
+                        self.layout[c][col].note[eVal-1] = 0
+                    if self.singleRowCheck([(c, d), (c, col)], {val}) and self.singleBoxCheck([(c, d), (c, col)], {val}):
+                        self.layout[a][col].note[eVal-1] = 0
+                if not self.stuck(tempCopy):
+                    print(f"Hidden Unique Rectangles Col Type 2b removed some of {combo} from either {(a, col)} or {(c, col)}")
+                    return
+    # ********************************************************************************************************************
+    # def wxyzWing(self):
     #     for i in range(9):
     #         for j in range(9):
     #             if self.layout[i][j].val != 0:
     #                 continue
-    #             tempSet = set(self.layout[i][j].note)
-    #             tempSet.discard(0)
-    #             for k in tempSet:
-    #                 if self.babySolve(k, i, j):
-    #                     self.layout[i][j].setVal(k+1)
-    #                     self.babySolveUser()
-
-
-        
-                # elif len(tempSet) == 3:
-                #     boxlock2 = False
-                #     while cA < 3 and not boxLock:
-                #         while cB < 3 and not boxlock:
-                #             temp = set(self.layout[cA + rowOffset][cB + colOffset].note)
-                #             temp.remove(0)
-                #             if temp <= tempSet and ((i, j) != (cA + rowOffset, cB + colOffset)):
-                #                 if not boxLock:
-                #                     boxLock = True
-                #                     i2 = cA + rowOffset
-                #                     j2 = cB + colOffset
-                #                 elif not boxLock2:
-                #                     boxLock2 = True
-                #                     i3 = cA + rowOffset
-                #                     j3 = cB + rowOffset
-                #             cB += 1
-                #         cA += 1
-# if i == i2 and j != j2:
-#                                     self.locked2[i][j] = self.softlinelockedx2[i][j] = self.softlinelockedx2[i2][j2] = True
-#                                 elif j == j2 and i != i2: 
-#                                     self.locked2[i][j] = self.softlinelockedy2[i2][j2] = self.softlinelockedy2[i2][j2] = True
-#                                 if self.softlinelockedy2[i][j] or self.softlinelockedx2[i][j]:
-#                                     self.locked2[i][j] = True
-    # can't remember what this does, i think it 
-    # def boxCheck2(self, i, j, i2, j2):
-    #     rowOffset = (i//3) * 3
-    #     colOffset = (j//3) * 3
-    #     for a in range(rowOffset, rowOffset + 3):
-    #         for b in range(colOffset, colOffset + 3):
-    #             # print(f"RowOffset {rowOffset} + {cA} ColOffset {colOffset} + {cB}")
-    #             temp = set(self.layout[a][b].note)
-    #             if not self.softboxlocked2[a][b] and temp != {0}:
-    #                 return True
-    #     return False
-
-                
-        
-    # def checklocks
-                            
+    #             tempSet = set(self.layout[i][j].note) - {0}
+    #             if len(tempSet) not in (3, 4):
+    #                 continue
                     
-    # THINK ABOUT IT
-#     from itertools import combinations
+    #             rowOffset = (i//3) * 3
+    #             colOffset = (j//3) * 3
 
-# candidates = [(i, j) for i in range(3) for j in range(3) if len(note[i][j]) == 2]
-# for trio in combinations(candidates, 3):
-#     combined = set().union(*(note[i][j] for i, j in trio))
-#     if len(combined) == 3:
+    #             # these declarations and the following loops are meant for finding potential rowWings, boxWings, and colWings for (i, j)
+    #             pBoxWing = {val: set() for val in tempSet}
+    #             pRowWing = {val: set() for val in tempSet}
+    #             pColWing = {val: set() for val in tempSet}
+    #             for val in tempSet:
+    #                 for row in range(rowOffset, rowOffset + 3):
+    #                     for col in range(colOffset, colOffset + 3):
+    #                         if (row, col) == (i, j):
+    #                             continue
+    #                         babySet = set(self.layout[row][col].note) - {0}
+    #                         if val in babySet and len(babySet) < 4:
+    #                             pBoxWing[val].add((row, col))
+    #             for val in tempSet:
+    #                 for col in range(9):
+    #                     if colOffset <= col < colOffset + 3:
+    #                         continue
+    #                     babySet = set(self.layout[i][col].note) - {0}
+    #                     if val in babySet and len(babySet) < 4:
+    #                         pRowWing[val].add((i, col))
+    #             for val in tempSet:
+    #                 for row in range(9):
+    #                     if rowOffset <= row < rowOffset + 3:
+    #                         continue
+    #                     babySet = set(self.layout[row][j].note) - {0}
+    #                     if val in babySet and len(babySet) < 4:
+    #                         pRowWing[val].add((row, j))
+    #             # for rowWings
+    #             for eVal, potential in pBoxWing.items():
+                    
+                
+                
+                
 
-
-# garbage broken redundant code
-# def doubleCheck(self):
-#         tempCopy = copy.deepcopy(self)
-#         # checks each value individually
-#         for val in range(1, 10):
-#             # iterates through row boxes
-#             for i in range(3):
-#                 rowOffset = i * 3
-#                 goodRow1 = set()
-#                 goodRow2 = set()
-#                 goodRow3 = set()
-#                 for row in range(rowOffset, rowOffset + 3):
-#                     for col in range(0, 3):
-#                         if val in self.layout[row][col].note:
-#                             goodRow1.add(row)
-#                     for col in range(3, 6):
-#                         if val in self.layout[row][col].note:
-#                             goodRow2.add(row)
-#                     for col in range(6, 9):
-#                         if val in self.layout[row][col].note:
-#                             goodRow3.add(row)
-#                 if not len(goodRow1) > 0 or not len(goodRow2) > 0 or not len(goodRow3) > 0:
-#                     continue
-#                 if len(goodRow1) == 2 and (goodRow1 == goodRow2 ^ goodRow1 == goodRow3):
-#                     if goodRow1 == goodRow2:
-#                         safeRow = set(goodRow1.difference(goodRow3)).pop()
-#                         for row in range(rowOffset, rowOffset + 3):
-#                             if row == safeRow:
-#                                 continue
-#                             for col in range(6, 9):
-#                                 self.layout[row][col].note[val - 1] = 0
-#                         if not tempCopy.stuck(self):
-#                             print(f"double check elminated {val} in row chute {i} in columns 6 - 9")
-#                     elif goodRow1 == goodRow3:
-#                         safeRow = set(goodRow1.difference(goodRow2)).pop()
-#                         for row in range(rowOffset, rowOffset + 3):
-#                             if row == safeRow:
-#                                 continue
-#                             for col in range(3, 6):
-#                                 self.layout[row][col].note[val - 1] = 0
-#                         if not tempCopy.stuck(self):
-#                             print(f"double check elminated {val} in row chute {i} in columns 3 - 6")
-#                 if len(goodRow2) == 2 and (goodRow2 == goodRow3):
-#                     safeRow = set(goodRow1.difference(goodRow3)).pop()
-#                     for row in range(forOffset, rowOffset + 3):
-#                         if row == safeRow:
-#                             continue
-#                         for col in range(0, 3):
-#                             self.layout[row][col].note[val - 1] = 0
-#                     if not tempCopy.stuck(self):
-#                         print(f"double check elminated {val} in row chute {i} in columns 0 - 3")
-#             for j in range(3):
-#                 colOffset = j * 3
-#                 goodCol1 = set()
-#                 goodCol2 = set()
-#                 goodCol3 = set()
-#                 for col in range(colOffset, colOffset + 3):
-#                     for row in range(0, 3):
-#                         if val in self.layout[row][col].note:
-#                             goodCol1.add(col)
-#                     for row in range(3, 6):
-#                         if val in self.layout[row][col].note:
-#                             goodCol2.add(col)
-#                     for row in range(6, 9):
-#                         if val in self.layout[row][col].note:
-#                             goodCol3.add(col)
-#                 if len(goodCol1) == 2 and (goodCol1 == goodCol2 ^ goodCol1 == goodCol3):
-#                     if goodCol1 == goodCol2:
-#                         safeCol = set(goodCol1.difference(goodCol3)).pop()
-#                         for col in range(colOffset, colOffset + 3):
-#                             if col == safeCol:
-#                                 continue
-#                             for row in range(6, 9):
-#                                 self.layout[row][col].note[val - 1] = 0
-#                         if not tempCopy.stuck(self):
-#                             print(f"double check eliminated {val} in col chute {j} in rows 6 - 9)")
-#                     elif goodCol1 == goodCol3:
-#                         safeCol = set(goodCol1.difference(goodCol2)).pop()
-#                         for col in range(colOffset, colOffset + 3):
-#                             if col == safeCol:
-#                                 continue
-#                             for row in range(3, 6):
-#                                 self.layout[row][col].note[val - 1] = 0
-#                         if not tempCopy.stuck(self):
-#                             print(f"double check eliminated {val} in col chute {j} in rows 3 - 6)")
-#                 if len(goodCol2) == 2 and goodCol2 == goodCol3:
-#                     safeCol = set(goodCol2.difference(goodCol1)).pop()
-#                     for col in range(colOffset, colOffset + 3):
-#                         if col == safeCol:
-#                             continue
-#                         for row in range(0, 3):
-#                             self.layout[row][col].note[val - 1] = 0
-#                     if not tempCopy.stuck(self):
-#                         print(f"double check eliminated {val} in col chute {j} in rows 0 - 3)")
+    # ********************************************************************************************************************
 
 
 
@@ -3047,4 +4171,21 @@ class Puzzle:
 
 
 
-            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
