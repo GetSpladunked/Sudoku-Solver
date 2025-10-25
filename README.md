@@ -8,7 +8,7 @@ The Puzzle object has a 9x9 grid of node objects, and boolean 9x9 grids that rep
 So far I have sucessfully implemented all of the "basic" strategies
 
 # Improvement Ideas:
-further implementation of getSet
+further implementation of getSet/n
 util general remaining function
 get indexes function?
 overall reworking of naked checks (double check hidden candidates works properly)
