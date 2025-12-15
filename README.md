@@ -19,3 +19,7 @@ look again at chute remote pairs.
 rewrite examples and __init__ function to take in-line strings.
 look again @ skyscraper and 2-string kite and see if they're redundant.
 look at getStrongX/WeakX functions and see if they're useful/reworkable elsewhere.
+
+# Notes for Usage:
+You will probably have to go in and uncomment some of the functions in the strategies section of the code, all strategies other than wxyz wing have been coded and proved to function properly.
+I have also heavily optimized all functions up to and including "Unique Rectangles"
