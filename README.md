@@ -22,4 +22,4 @@ look at getStrongX/WeakX functions and see if they're useful/reworkable elsewher
 
 # Notes for Usage:
 You will probably have to go in and uncomment some of the functions in the strategies section of the code, all strategies other than wxyz wing have been coded and proved to function properly.
-I have also heavily optimized all functions up to and including "Unique Rectangles"
+I have also heavily optimized all functions up to and including "Unique Rectangles". One of the main changes I made to the usage of the algorithm is the implementation of in-line representation of sudoku problems. Check the example file for cool examples and specific strategy usage. Some strategies will get in the way of others so I recommend commenting out some of the function calls in the strateigies method.
