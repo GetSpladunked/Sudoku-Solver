@@ -7,19 +7,8 @@ First I created a basic framework of the program, the node object has an int val
 The Puzzle object has a 9x9 grid of node objects, and boolean 9x9 grids that represent naked pairs found in boxes, rows, and columns. 
 So far I have sucessfully implemented all of the "basic" strategies
 
-# Improvement Ideas:
-further implementation of getSet.
-util general remaining function.
-get indexes function?
-overall reworking of naked checks (double check hidden candidates works properly).
-marriage with loop check functions.
-simplify printing functions.
-general erasing function (takes coord list and list of vals into parameters) to replace the [eVal-1] functions.
-look again at chute remote pairs.
-rewrite examples and __init__ function to take in-line strings.
-look again @ skyscraper and 2-string kite and see if they're redundant.
-look at getStrongX/WeakX functions and see if they're useful/reworkable elsewhere.
+# Changes made:
+Heavy optimizations for every single function up to and including "Unique Rectangles". So far with my optimizations I have removed 1400 lines of code, which means that my initial code was pretty garbage. Another large change that I made was the implementation of "Utility" functions with are simple functions that perform the same actions among many strategies. One change I made to the usage of the algorithm is the implementation of in-line representation of sudoku problems. Check the example file for cool examples and specific strategy usage. Another smaller change in the usage was to implementing a simple backtracking search algorithm to brute-force solve the puzzle. There are 2 reasons for this, the first reason is so that I have the solution to compare the current state of the puzzle to determine if it has solved correctly or if any strategies perfomed created critical errors, the second reason is to ensure that the puzzle is a true sudoku, meaning it has a single solution. If there are multiple solutions to a problem, then the algorithm is pretty much guaranteed to make a mistake other than sheer luck fringe cases where it solves correctly. Some strategies like y-wing have countermeasures for this but I know that other strategies will not.
 
 # Notes for Usage:
 You will probably have to go in and uncomment some of the functions in the strategies section of the code, all strategies other than wxyz wing have been coded and proved to function properly.
-I have also heavily optimized all functions up to and including "Unique Rectangles". One of the main changes I made to the usage of the algorithm is the implementation of in-line representation of sudoku problems. Check the example file for cool examples and specific strategy usage. Some strategies will get in the way of others so I recommend commenting out some of the function calls in the strateigies method. One smaller change I made was to implement a simple backtracking search algorithm to brute-force solve the puzzle. There are 2 reasons for this, the first reason is so that I have the solution to compare the current state of the puzzle to determine if it has solved correctly or if any strategies perfomed created critical errors, the second reason is to ensure that the puzzle is a true sudoku, meaning it has a single solution. 
