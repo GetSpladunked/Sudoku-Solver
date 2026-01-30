@@ -1746,7 +1746,7 @@ class Puzzle:
                         continue
                     rootPattern = self.getAscPattern((rBox, cBox), combo)
                     if rootPattern is not None and len(rootPattern) >= 3:
-                        if not any(len(set(self.layout[r][c].note) - {0} - combo) > 0 for (r, c) in rootPattern):
+                        if not any(len(set(self.layout[r][c].note) - {0} - set(combo)) > 0 for (r, c) in rootPattern):
                             # print(f"Ascending {combo} root {(rBox, cBox)}: {rootPattern}")
                             newBoxes = self.getFullBox((rBox, cBox))
                             for newSet in newBoxes:
@@ -1759,7 +1759,7 @@ class Puzzle:
                                 if len(allNodes) != 9:
                                     continue
                                 for tempX, tempY in allNodes:
-                                    tempSet = set(self.layout[tempX][tempY].note) - {0} - combo
+                                    tempSet = set(self.layout[tempX][tempY].note) - {0} - set(combo)
                                     if len(tempSet) > 0:
                                         for x in tempSet:
                                             guardians[x].add((tempX, tempY))
@@ -1770,9 +1770,9 @@ class Puzzle:
                                     for x in guardians:
                                         if len(guardians[x]) == 1:
                                             current = guardians[x].pop()
-                                            goodVal = set(self.layout[current[0]][current[1]].note) - {0} - combo
+                                            goodVal = set(self.layout[current[0]][current[1]].note) - {0} - set(combo)
                                             goodVal = goodVal.pop()
-                                            self.layout[current[0]][current[1]].setVal(goodVal)
+                                            self.layout[current[0]][current[1]].setVal(goodVal, (current[0], current[1]))
                                             self.singleLockReset((current[0], current[1]))
                                             print(f"Tritagon ASC found {goodVal} at node {current}")
                                             return
@@ -1787,7 +1787,7 @@ class Puzzle:
                             
                     rootPattern = self.getDscPattern((rBox, cBox), combo)
                     if rootPattern is not None and len(rootPattern) >= 3:
-                        if not any(len(set(self.layout[r][c].note) - {0} - combo) > 0 for (r, c) in rootPattern):
+                        if not any(len(set(self.layout[r][c].note) - {0} - set(combo)) > 0 for (r, c) in rootPattern):
                             newBoxes = self.getFullBox((rBox, cBox))
                             for newSet in newBoxes:
                                 allNodes = []
@@ -1799,7 +1799,7 @@ class Puzzle:
                                 if len(allNodes) != 9:
                                     continue
                                 for tempX, tempY in allNodes:
-                                    tempSet = set(self.layout[tempX][tempY].note) - {0} - combo
+                                    tempSet = set(self.layout[tempX][tempY].note) - {0} - set(combo)
                                     if len(tempSet) > 0:
                                         for x in tempSet:
                                             guardians[x].add((tempX, tempY))
@@ -1810,9 +1810,9 @@ class Puzzle:
                                     for x in guardians:
                                         if len(guardians[x]) == 1:
                                             current = guardians[x].pop()
-                                            goodVal = set(self.layout[current[0]][current[1]].note) - {0} - combo
+                                            goodVal = set(self.layout[current[0]][current[1]].note) - {0} - set(combo)
                                             goodVal = goodVal.pop()
-                                            self.layout[current[0]][current[1]].setVal(goodVal)
+                                            self.layout[current[0]][current[1]].setVal(goodVal, (current[0], current[1]))
                                             self.singleLockReset((current[0], current[1]))
                                             print(f"Tritagon DSC found {goodVal} at node {current}")
                                             return
@@ -1825,57 +1825,57 @@ class Puzzle:
                                             print(f"Tritagon DSC found 2 gaurdians with {x} at nodes {guardians[x]}")
                                             return
                     
-        def getNodes(self, boxRoot, combo):
-            rowOffset, colOffset = boxRoot
-            goodNodes = []
-            for row in range(rowOffset, rowOffset + 3):
-                for col in range(colOffset, colOffset + 3):
-                    tempSet = set(self.layout[row][col].note) - {0}
-                    if self.layout[row][col].val == 0 and (tempSet <= combo or combo <= tempSet):
-                        goodNodes.append((row, col))
-            goodNodes.sort(key=lambda item: (item[1], -item[0]))
-            return goodNodes
-            
-        def getAscPattern(self, boxRoot, combo):
-            nodes = self.getNodes(boxRoot, combo)
-            if len(nodes) < 3:
-                return None
-            possibleASCTriples = [{(0, 0), (2, 1), (1, 2)},
-                                  {(1, 0), (0, 1), (2, 2)},
-                                  {(0, 2), (1, 1), (2, 0)}]
-            for triple in itertools.combinations(nodes, 3):
-                normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
-                if normalized in possibleASCTriples:
-                    return list(triple)
+    def getNodes(self, boxRoot, combo):
+        rowOffset, colOffset = boxRoot
+        goodNodes = []
+        for row in range(rowOffset, rowOffset + 3):
+            for col in range(colOffset, colOffset + 3):
+                tempSet = set(self.layout[row][col].note) - {0}
+                if self.layout[row][col].val == 0 and (tempSet <= set(combo) or set(combo) <= tempSet):
+                    goodNodes.append((row, col))
+        goodNodes.sort(key=lambda item: (item[1], -item[0]))
+        return goodNodes
+        
+    def getAscPattern(self, boxRoot, combo):
+        nodes = self.getNodes(boxRoot, combo)
+        if len(nodes) < 3:
             return None
-            
-        def getDscPattern(self, boxRoot, combo):
-            nodes = self.getNodes(boxRoot, combo)
-            if len(nodes) < 3:
-                return None
-            possibleDSCTriples = [{(0, 0), (1, 1), (2, 2)},
-                                  {(1, 0), (2, 1), (0, 2)},
-                                  {(2, 0), (0, 1), (1, 2)}]
-            for triple in itertools.combinations(nodes, 3):
-                normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
-                if normalized in possibleDSCTriples:
-                    return list(triple)
+        possibleASCTriples = [{(0, 0), (2, 1), (1, 2)},
+                              {(1, 0), (0, 1), (2, 2)},
+                              {(0, 2), (1, 1), (2, 0)}]
+        for triple in itertools.combinations(nodes, 3):
+            normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
+            if normalized in possibleASCTriples:
+                return list(triple)
+        return None
+        
+    def getDscPattern(self, boxRoot, combo):
+        nodes = self.getNodes(boxRoot, combo)
+        if len(nodes) < 3:
             return None
-    
-        def getFullBox(self, boxRoot):
-            rBox, cBox = boxRoot
-            boxes = [0, 3, 6]
-            groups = []
-            for r in boxes:
-                for c in boxes:
-                    if r <= rBox <= r + 3 and c <= cBox <= c + 3:
-                        frameR = min(r+3, 6)
-                        frameC = min(c+3, 6)
-                        cornerBoxes = [(r, c), (r, frameC), (frameR, c), (frameR, frameC)]
-                        if boxRoot in cornerBoxes:
-                            cornerBoxes.remove(boxRoot)
-                        groups.append(cornerBoxes)
-            return groups
+        possibleDSCTriples = [{(0, 0), (1, 1), (2, 2)},
+                              {(1, 0), (2, 1), (0, 2)},
+                              {(2, 0), (0, 1), (1, 2)}]
+        for triple in itertools.combinations(nodes, 3):
+            normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
+            if normalized in possibleDSCTriples:
+                return list(triple)
+        return None
+
+    def getFullBox(self, boxRoot):
+        rBox, cBox = boxRoot
+        boxes = [0, 3, 6]
+        groups = []
+        for r in boxes:
+            for c in boxes:
+                if r <= rBox <= r + 3 and c <= cBox <= c + 3:
+                    frameR = min(r+3, 6)
+                    frameC = min(c+3, 6)
+                    cornerBoxes = [(r, c), (r, frameC), (frameR, c), (frameR, frameC)]
+                    if boxRoot in cornerBoxes:
+                        cornerBoxes.remove(boxRoot)
+                    groups.append(cornerBoxes)
+        return groups
     # ********************************************************************************************************************
     def fireworkUtil(self):
         tempCopy = copy.deepcopy(self)
