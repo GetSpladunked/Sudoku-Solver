@@ -1,11 +1,14 @@
 import itertools
 import copy
+import time
 
-def solve(Puzzle):
+def solve(Puzzle, correctSoln):
     iterations = 0
     Puzzle.displayAll()
     # Puzzle.resetLocks()
     while not Puzzle.solved():
+        if not Puzzle.compare(correctSoln):
+            return print("Bad last step")
         print(f"Iteration: {iterations}")
         tempCopy = copy.deepcopy(Puzzle)
         Puzzle.cleanup()
@@ -19,7 +22,7 @@ def solve(Puzzle):
         if Puzzle.stuck(tempCopy):
             Puzzle.displayAll()
             print("Using some strategies")
-            Puzzle = strategies(Puzzle, tempCopy)
+            Puzzle = strategiesWithTimers(Puzzle, tempCopy)
             if Puzzle.stuck(tempCopy):
                 break
             else:
@@ -33,76 +36,152 @@ def solve(Puzzle):
         Puzzle.displayAll()
 
 def strategies(Puzzle, tempCopy):
-    # Puzzle.xWing(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.chuteRemotePairs(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.simpleColoringUtil(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.yWing()
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
+    Puzzle.xWing(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.chuteRemotePairs(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.simpleColoringUtil(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.yWing()
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.rectangleElimination(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.swordfishUtil(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.xyzWing(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.bug()
+    Puzzle.xCycles(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.medusa3D(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.jellyFish(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.uniqueRectangles(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return 
+    Puzzle.tridagon(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        return Puzzle
+    Puzzle.fireworkUtil()
+    if not Puzzle.stuck(tempCopy):
+        # print("Firework Worked")
+        return Puzzle
+    Puzzle.twinXYChains()
+    if not Puzzle.stuck(tempCopy):
+        # print("Twin XY Chains Worked")
+        return Puzzle
+    Puzzle.SKLoops()
+    if not Puzzle.stuck(tempCopy):
+        # print("SK Loops Worked")
+        return Puzzle
+    Puzzle.extUniqueRectanglesUtil()
+    if not Puzzle.stuck(tempCopy):
+        # print("Extended Unique Rectangles Worked")
+        return Puzzle
+    Puzzle.hiddenUniqueRectanglesUtil()
+    if not Puzzle.stuck(tempCopy):
+        # print("Hidden Unique Rectangles Worked")
+        return Puzzle
+    return Puzzle
+
+def strategiesWithTimers(Puzzle, tempCopy):
+    startTime = time.perf_counter()
+    Puzzle.xWing(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good XWing", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad XWing", time.perf_counter() - startTime)
+    startTime = time.perf_counter()
+    Puzzle.chuteRemotePairs(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good CRP", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad CRP", time.perf_counter() - startTime)
+    startTime = time.perf_counter()
+    Puzzle.simpleColoring(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good SimpleColoring", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad SimpleColoring", time.perf_counter() - startTime)    
+    startTime = time.perf_counter()
+    Puzzle.yWing()
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good yWing", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad yWing", time.perf_counter() - startTime)
+    
+    # timeout on rect elim
+    # startTime = time.perf_counter()
     # Puzzle.rectangleElimination(tempCopy)
     # if not Puzzle.stuck(tempCopy):
+    #     print(f"Elapsed Time Good Rectangle Elim", time.perf_counter() - startTime)
     #     return Puzzle
-    # Puzzle.swordfishUtil(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.xyzWing(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.bug()
-    # Puzzle.xCycles(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.medusa3D(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.jellyFish(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.uniqueRectangles(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.uniqueRectangleUtil(tempCopy)
-    # if not Puzzle.stuck(tempCopy):
-    #     return Puzzle
-    # Puzzle.tridagonUtil()
-    # if not Puzzle.stuck(tempCopy):
-    #     # print("Tridagon Worked")
-    #     return Puzzle
-    # Puzzle.fireworkUtil()
-    # if not Puzzle.stuck(tempCopy):
-    #     # print("Firework Worked")
-    #     return Puzzle
-    # Puzzle.twinXYChains()
-    # if not Puzzle.stuck(tempCopy):
-    #     # print("Twin XY Chains Worked")
-    #     return Puzzle
-    # Puzzle.SKLoops()
-    # if not Puzzle.stuck(tempCopy):
-    #     # print("SK Loops Worked")
-    #     return Puzzle
-    # Puzzle.extUniqueRectanglesUtil()
-    # if not Puzzle.stuck(tempCopy):
-    #     # print("Extended Unique Rectangles Worked")
-    #     return Puzzle
-    # Puzzle.hiddenUniqueRectanglesUtil()
-    # if not Puzzle.stuck(tempCopy):
-    #     # print("Hidden Unique Rectangles Worked")
-    #     return Puzzle
-    # Puzzle.skyscraperUtil()
-    # if not Puzzle.stuck(tempCopy):
-    #     print("Skyscraper Worked")
-    #     return Puzzle
-    # Puzzle.twoStringKiteUtil()
-    # if not Puzzle.stuck(tempCopy):
-    #     print("2-String Kite Worked")
-    #     return Puzzle
+    # print(f"Elapsed Time Bad Rectangle Elim", time.perf_counter() - startTime)
+    
+    startTime = time.perf_counter()
+    Puzzle.swordfishUtil(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good SwordFish", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad SwordFish", time.perf_counter() - startTime)
+    startTime = time.perf_counter()
+    Puzzle.xyzWing(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good xyzWing", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad xyzWing", time.perf_counter() - startTime)
+    Puzzle.bug()
+    startTime = time.perf_counter()
+    Puzzle.xCycles(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good xCycles", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad xCycles", time.perf_counter() - startTime)
+    startTime = time.perf_counter()
+    Puzzle.medusa3D(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good 3D Medusa", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad 3D Medusa", time.perf_counter() - startTime)
+    startTime = time.perf_counter()
+    Puzzle.jellyFish(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good JellyFish", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad JellyFish", time.perf_counter() - startTime)
+    startTime = time.perf_counter()
+    Puzzle.uniqueRectangles(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good Unique Rectangles", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad Unique Rectangles", time.perf_counter() - startTime)
+
+    startTime = time.perf_counter()
+    Puzzle.tridagonUtil()
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good Tridagon", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad Tridagon", time.perf_counter() - startTime)
+    
+    startTime = time.perf_counter()
+    Puzzle.tridagon(tempCopy)
+    if not Puzzle.stuck(tempCopy):
+        print(f"Elapsed Time Good Tridagon", time.perf_counter() - startTime)
+        return Puzzle
+    print(f"Elapsed Time Bad Tridagon", time.perf_counter() - startTime)
     return Puzzle
+
 def EZstrategies(Puzzle, tempCopy):
     Puzzle.chuteRemotePairs(tempCopy)
     Puzzle.simpleColoringUtil(tempCopy)
@@ -113,20 +192,15 @@ def EZstrategies(Puzzle, tempCopy):
     Puzzle.bug()
     Puzzle.xCycles(tempCopy)
     Puzzle.medusa3DUtil(tempCopy)
-    # Puzzle.jellyFishUtil()
-    # Puzzle.uniqueRectangleUtil()
-    # Puzzle.tridagonUtil()
+    Puzzle.jellyFishUtil()
+    Puzzle.uniqueRectangleUtil()
+    Puzzle.tridagonUtil()
     # Puzzle.fireworkUtil()
     # Puzzle.twinXYChains()
     # Puzzle.SKLoops()
     # Puzzle.extUniqueRectanglesUtil()
     # Puzzle.hiddenUniqueRectanglesUtil()
     return Puzzle
-# improvement Ideas:
-# further implementation of getSet. 
-# look again at chute remote pairs.
-# look again @ skyscraper and 2-string kite and see if they're redundant. 
-# look at getStrongX/WeakX functions and see if they're useful/reworkable elsewhere.
 
     # ********************************************************************************************************************
     # Object declaration functions
@@ -138,13 +212,14 @@ class Puzzle:
             self.problem = prob
             self.val = hardVal
             self.note = [1,2,3,4,5,6,7,8,9]
-            if self.val != 0:
-                self.note = [0,0,0,0,0,0,0,0,0]
+            if self.val != 0: self.note = [0,0,0,0,0,0,0,0,0]
         # setval changes the value of the current Node and changes the notes for the current node to a list of 9 0's
         # then it calls updateNotes on the problem to remove the current value from all nodes in its x & y axis as well as the box it resides in
-        def setVal(self, hardVal):
+        def setVal(self, hardVal, idx):
             self.val = hardVal
             self.note = [0,0,0,0,0,0,0,0,0]
+            self.problem.singleLockReset(idx)
+            self.problem.setLocks(idx[0], idx[1])
             self.problem.updateNotes()
         def equals(self, x):
             return self.val == x.val and self.note == x.note
@@ -173,9 +248,10 @@ class Puzzle:
             for c in range(9):
                 val = grid[r][c]
                 self.layout[r][c] = self.Node(grid[r][c], self)
-                if val:
-                    self.locked[r][c] = self.softboxlocked[r][c] = self.softlinelockedx[r][c] = self.softlinelockedy[r][c] = True
+                if val: self.locked[r][c] = self.softboxlocked[r][c] = self.softlinelockedx[r][c] = self.softlinelockedy[r][c] = True
         self.updateNotes()
+        self.report = ""
+        self.fullReport = ""
     # resets the locked 2D arrays for every iteration
     def resetLocks(self):
         self.locked = [[self.layout[r][c].val != 0 for c in range(9)] for r in range(9)]
@@ -185,9 +261,8 @@ class Puzzle:
         rowOffset, colOffset = self.getOffset(i), self.getOffset(j)
         for row in range(9): self.softlinelockedy[row][j] = False
         for col in range(9): self.softlinelockedx[i][col] = False
-        for row in range(rowOffset, rowOffset + 3):
-            for col in range(colOffset, colOffset + 3):
-                self.softboxlocked[row][col] = False
+        for row in range(rowOffset, rowOffset + 3): 
+            for col in range(colOffset, colOffset + 3): self.softboxlocked[row][col] = False
     # sets locks if a value is found
     def setLocks(self, r, c):
         self.locked[r][c] = self.softboxlocked[r][c] = self.softlinelockedx[r][c] = self.softlinelockedy[r][c] = True
@@ -197,45 +272,74 @@ class Puzzle:
     # displays problem (empty space if non-existant)
     def display(self):
         for i in range(9):
-            if i % 3 == 0 and i != 0:
-                print("---------------------")
+            if i % 3 == 0 and i != 0: print("---------------------")
             for j in range(9):
-                if j % 3 == 0 and j != 0:
-                    print("|", end = " ")
+                if j % 3 == 0 and j != 0: print("|", end = " ")
                 print(" ", end = " ") if self.layout[i][j].val == 0 else print(self.layout[i][j].val, end = " ")
-                if j == 8:
-                    print()
+                if j == 8: print()
         print()
+
+    def displayPuzToReport(self):
+        stringRep = ""
+        for i in range(9):
+            if i % 3 == 0 and i != 0: stringRep += "---------------------\n"
+            for j in range(9):
+                if j % 3 == 0 and j != 0: stringRep += "| "
+                if self.layout[i][j].val != 0: stringRep += f"{self.layout[i][j].val} "
+                else: stringRep += "  "
+                if j == 8: stringRep += "\n"
+        self.report += stringRep + "\n"
         
     # display notes, for nodes with values displays 3x3 grid of 0's, for nodes w/o values displays empty space if note doesn't exist
     def notesDisplay(self):
         horizontal_line = "-" * 73
         for i in range(9):
-            if i % 3 == 0 and i != 0:
-                print(horizontal_line)
+            if i % 3 == 0 and i != 0: print(horizontal_line)
             for note_row in range(3):
                 for j in range(9):
-                    if j % 3 == 0 and j != 0:
-                        print("|", end=" ")
+                    if j % 3 == 0 and j != 0: print("|", end=" ")
                     start = note_row * 3
                     end = start + 3
                     for k in range(start, end):
                         val = self.layout[i][j].note[k]
-                        if self.layout[i][j].val != 0:
-                            print("0", end=" ")
-                        else:
-                            print(val if val != 0 else " ", end=" ")
-                    if j != 8:
-                        print("|", end=" ")
+                        if self.layout[i][j].val != 0: print("0", end=" ")
+                        else: print(val if val != 0 else " ", end=" ")
+                    if j != 8: print("|", end=" ")
                 print()
-            if i != 8:
-                print(horizontal_line)
+            if i != 8: print(horizontal_line)
         print()
+
+    def displayNotesToReport(self):
+        stringRep = ""
+        horizontal_line = "-" * 73
+        for i in range(9):
+            if i % 3 == 0 and i != 0: stringRep += horizontal_line + "\n"
+            for note_row in range(3):
+                for j in range(9):
+                    if j % 3 == 0 and j != 0: stringRep += "| "
+                    start = note_row * 3
+                    end = start + 3
+                    for k in range(start, end):
+                        val = self.layout[i][j].note[k]
+                        if self.layout[i][j].val != 0: stringRep += "0 "
+                        else:
+                            if val != 0: stringRep += f"{val} "
+                            else: stringRep += "  "
+                    if j != 8: stringRep += "| "
+                stringRep += "\n"
+            if i != 8: stringRep += "\n"
+        self.report += stringRep + "\n"
     # displays puzzle followed by the notes
     def displayAll(self):
         self.display()
         self.notesDisplay()
         print()
+
+    def displayAllToReport(self):
+        self.displayPuzToReport()
+        self.displayNotesToReport()
+        self.report += "\n"
+    
     def stringRep(self):
         return "".join(str(self.layout[r][c].val or ".") for r in range(9) for c in range(9))
     # ********************************************************************************************************************
@@ -245,13 +349,10 @@ class Puzzle:
         for i in range(9):
             for j in range(9):
                 x = self.layout[i][j].val
-                if x == 0:
-                    continue
+                if x == 0: continue
                 for a in range(9):
-                    if a != j:
-                        self.layout[i][a].note[x-1] = 0
-                    if a != i:
-                        self.layout[a][j].note[x-1] = 0
+                    if a != j: self.layout[i][a].note[x-1] = 0
+                    if a != i: self.layout[a][j].note[x-1] = 0
                 rowOffset, colOffset = self.getOffset(i), self.getOffset(j)
                 for a in range(rowOffset, rowOffset + 3):
                     for b in range(colOffset, colOffset + 3):                           
@@ -276,44 +377,37 @@ class Puzzle:
     # updates specific values (optimization purposes)
     def updateNotesDX(self, coordList, vals):
         for i, j in coordList:
-            for eVal in vals:
-                self.layout[i][j].note[eVal-1] = 0
+            for eVal in vals: self.layout[i][j].note[eVal-1] = 0
     # ********************************************************************************************************************
     # Termination & "stuck" binary functions, also a differenceCount function to determine the effectivity of changes made to a puzzle object
     # basic termination function
     def solved(self):
         for i in range(9):
             for j in range(9):
-                if self.layout[i][j].val == 0:
-                    return False
+                if self.layout[i][j].val == 0: return False
         return True
     # conditional to determine if there are any differences between current build and a tempCopy
     def stuck(self, tempCopy):
         for i in range(9):
             for j in range(9):
-                if not self.layout[i][j].equals(tempCopy.layout[i][j]):
-                    return False
+                if not self.layout[i][j].equals(tempCopy.layout[i][j]): return False
         return True
     
     def differenceCount(self, origCopy):
-        hardCount = 0 
-        softCount = 0
+        hardCount, softCount = 0, 0
         for i in range(9):
             for j in range(9):
                 if origCopy.layout[i][j].val == 0 and self.layout[i][j].val == 0:
                     tempSet1 = set(origCopy.layout[i][j].note) - {0}
                     tempSet2 = set(self.layout[i][j].note) - {0}
                     softCount += len(tempSet1) - len(tempSet2)
-                elif origCopy.layout[i][j].val == 0 and self.layout[i][j].val != 0:
-                    hardCount += 1
+                elif origCopy.layout[i][j].val == 0 and self.layout[i][j].val != 0: hardCount += 1
         return hardCount, softCount
     def compare(self, solvedArry):
         for i in range(9):
             for j in range(9):
-                if self.layout[i][j].val == solvedArry[i][j]:
-                    continue
-                if solvedArry[i][j] not in self.layout[i][j].note:
-                    return False
+                if self.layout[i][j].val == solvedArry[i][j]: continue
+                if solvedArry[i][j] not in self.layout[i][j].note: return False
         return True
     # ********************************************************************************************************************
     # Utility functions
@@ -335,12 +429,10 @@ class Puzzle:
         r0, c0 = (coords[0][0]//3)*3, (coords[0][1]//3)*3
         return all(all(k not in self.layout[i][j].note for k in vals) 
                    for i in range(r0, r0+3) for j in range(c0, c0+3) if (i, j) not in coords)
-    
     def singleRowCheck(self, coords, vals):
         row = coords[0][0]
         return all(all(k not in self.layout[row][j].note for k in vals) 
                    for j in range(9) if (row, j) not in coords)
-    
     def singleColCheck(self, coords, vals):
         col = coords[0][1]
         return all(all(k not in self.layout[i][col].note for k in vals) 
@@ -371,7 +463,7 @@ class Puzzle:
         _, y = pos
         return {(r, y) for r in range(9) if vals == self.getSet((r, y))}
 
-    # returns a set of all indexes that contain a set of notes that set vals is a subset of
+    # returns indexes of nodes whose notes are a subset of vals
     def getBoxSubsets(self, pos, vals):
         x, y = pos
         r0, c0 = self.getOffset(x), self.getOffset(y)
@@ -383,15 +475,28 @@ class Puzzle:
         _, y = pos
         return {(r, y) for r in range(9) if not self.locked[r][y] and self.getSet((r, y)) <= vals}
 
+    # returns indexes of nodes whose notes contain a subset of vals
     def getAnyBoxIdxs(self, pos, vals):
         r0, c0 = self.getOffset(pos[0]), self.getOffset(pos[1])
-        return {(r, c) for r in range(r0, r0+3) for c in range(c0, c0+3) if vals <= self.getSet((r, c))}
+        return {(r, c) for r in range(r0, r0 + 3) for c in range(c0, c0 + 3) if vals <= self.getSet((r, c))}
     def getAnyRowIdxs(self, pos, vals):
         x, _ = pos
         return {(x, c) for c in range(9) if not self.locked[x][c] and vals <= self.getSet((x, c))}
     def getAnyColIdxs(self, pos, vals):
         _, y = pos
         return {(r, y) for r in range(9) if not self.locked[r][y] and vals <= self.getSet((r, y))}
+    def getAnyConnectedIdxs(self, pos, vals):
+        return self.getAnyBoxIdxs(pos, vals) | self.getAnyRowIdxs(pos, vals) | self.getAnyColIdxs(pos, vals)
+    def getAnyPuzIdxs(self, vals):
+        return {(r, c) for r in range(9) for c in range(9) if not self.locked[r][c] and vals <= self.getSet((r, y))}
+
+    def checkLoopValidity(self, nodes, vals):
+        check = {val: 0 for val in vals}
+        for node in nodes:
+            for val in self.getSet(node):
+                if val in vals: check[val] += 1
+        if all(check[val] >= len(vals) - 1 for val in vals): return True
+        return False
 
     # returns if 2 nodes are in same row/col chute
     def sameRowChute(self, node1, node2):
@@ -414,8 +519,7 @@ class Puzzle:
                 if len(tempSet) == 1:
                     a = tempSet.pop()
                     print(f"Cleanup found {a} at index {(i, j)}")
-                    self.layout[i][j].setVal(a)
-                    self.singleLockReset((i, j))
+                    self.layout[i][j].setVal(a, (i, j))
                     self.setLocks(i, j)
                     self.cleanup()
                     continue
@@ -424,67 +528,53 @@ class Puzzle:
                             self.singleRowCheck([(i,j)], {a}),
                             self.singleColCheck([(i,j)], {a})]):
                         print(f"Cleanup found {a} at index {(i,j)}")
-                        self.layout[i][j].setVal(a)
-                        self.singleLockReset((i, j))
+                        self.layout[i][j].setVal(a, (i, j))
                         self.setLocks(i, j)
                         self.cleanup()
                         break
     # These functions check for naked groups within the puzzle object
     def checkBoxLock(self, tempCopy):
         remaining = self.getRemaining()
-        for size in range(2, len(remaining)):
+        for size in range(2, 6):
             for combo in itertools.combinations(remaining, size):
                 vals = set(combo)
                 for r in range(9):
                     for c in range(9):
-                        if self.locked[r][c] or self.softboxlocked[r][c]:
-                            continue
+                        if self.locked[r][c] or self.softboxlocked[r][c]: continue
                         nodeSet = self.getSet((r, c))
                         if nodeSet == vals:
-                            boxCells = list(self.getExBoxIdxs((r, c), vals))
-                            if len(boxCells) == size: 
-                                for x, y in boxCells:
-                                    self.softboxlocked[x][y] = True
+                            boxCells = list(self.getBoxSubsets((r, c), vals))
+                            if len(boxCells) == size:
+                                for x, y in boxCells: self.softboxlocked[x][y] = True
                                 if self.inRow(boxCells):
-                                    for x, y in boxCells:
-                                        self.softlinelockedx[x][y] = True
+                                    for x, y in boxCells: self.softlinelockedx[x][y] = True
                                     self.subUpdateNotes('row', boxCells, vals)
                                     self.subUpdateNotes('box', boxCells, vals)
-                                    # if not self.stuck(tempCopy):
-                                    #     print(f"CheckBoxLock Sit 1 found {vals} in {boxCells}, recorded box & row locks.")
+                                    # if not self.stuck(tempCopy): print(f"CheckBoxLock Sit 1 found {vals} in {boxCells}, recorded box & row locks.")
                                 elif self.inCol(boxCells):
-                                    for x, y in boxCells:
-                                        self.softlinelockedy[x][y] = True
+                                    for x, y in boxCells: self.softlinelockedy[x][y] = True
                                     self.subUpdateNotes('col', boxCells, vals)
                                     self.subUpdateNotes('box', boxCells, vals)
-                                    # if not self.stuck(tempCopy):
-                                    #     print(f"CheckBoxLock Sit 1 found {vals} in {boxCells}, recorded box & col locks.")
+                                    # if not self.stuck(tempCopy): print(f"CheckBoxLock Sit 1 found {vals} in {boxCells}, recorded box & col locks.")
                                 else:
                                     self.subUpdateNotes('box', boxCells, vals)
-                                    # if not self.stuck(tempCopy):
-                                    #     print(f"CheckBoxLock Sit 1 found {vals} in {boxCells}, recorded box locks.")
+                                    # if not self.stuck(tempCopy): print(f"CheckBoxLock Sit 1 found {vals} in {boxCells}, recorded box locks.")
                         boxCells = list(self.getExBoxIdxs((r, c), vals))
                         if 2 <= len(boxCells) and len(boxCells) == size:
-                            for x, y in boxCells:
-                                self.softboxlocked[x][y] = True
+                            for x, y in boxCells: self.softboxlocked[x][y] = True
                             if self.inRow(boxCells):
-                                for x, y in boxCells:
-                                    self.softlinelockedx[x][y] = True
+                                for x, y in boxCells: self.softlinelockedx[x][y] = True
                                 self.subUpdateNotes('row', boxCells, vals)
                                 self.subUpdateNotes('box', boxCells, vals)
-                                # if not self.stuck(tempCopy):
-                                #     print(f"CheckBoxLock Sit 2 found {vals} in {boxCells}, recorded box & row locks.")
+                                # if not self.stuck(tempCopy): print(f"CheckBoxLock Sit 2 found {vals} in {boxCells}, recorded box & row locks.")
                             elif self.inCol(boxCells):
-                                for x, y in boxCells:
-                                    self.softlinelockedy[x][y] = True
+                                for x, y in boxCells: self.softlinelockedy[x][y] = True
                                 self.subUpdateNotes('col', boxCells, vals)
                                 self.subUpdateNotes('box', boxCells, vals)
-                                # if not self.stuck(tempCopy):
-                                #     print(f"CheckBoxLock Sit 2 found {vals} in {boxCells}, recorded box & col locks.")
+                                # if not self.stuck(tempCopy): print(f"CheckBoxLock Sit 2 found {vals} in {boxCells}, recorded box & col locks.")
                             else:
                                 self.subUpdateNotes('box', boxCells, vals)
-                                # if not self.stuck(tempCopy):
-                                #     print(f"CheckBoxLock Sit 2 found {vals} in {boxCells}, recorded box locks.")
+                                # if not self.stuck(tempCopy): print(f"CheckBoxLock Sit 2 found {vals} in {boxCells}, recorded box locks.")
     def checkRowLock(self, tempCopy):
         remaining = self.getRemaining()
         for size in range(2, len(remaining)):
@@ -492,40 +582,31 @@ class Puzzle:
                 vals = set(combo)
                 for r in range(9):
                     for c in range(9):
-                        if self.locked[r][c] or self.softlinelockedx[r][c]:
-                            continue
+                        if self.locked[r][c] or self.softlinelockedx[r][c]: continue
                         nodeSet = self.getSet((r, c))
                         if nodeSet == vals:
                             rowCells = list(self.getExRowIdxs((r, c), vals))
                             if len(rowCells) == size:
-                                for x, y in rowCells:
-                                    self.softlinelockedx[x][y] = True
+                                for x, y in rowCells: self.softlinelockedx[x][y] = True
                                 if self.inBox(rowCells):
-                                    for x, y in rowCells:
-                                        self.softboxlocked[x][y] = True
+                                    for x, y in rowCells: self.softboxlocked[x][y] = True
                                     self.subUpdateNotes('row', rowCells, vals)
                                     self.subUpdateNotes('box', rowCells, vals)
-                                    # if not self.stuck(tempCopy):
-                                    #     print(f"CheckRowLock Sit 1 found {vals} in {rowCells}, recorded row & box locks.")
+                                    # if not self.stuck(tempCopy): print(f"CheckRowLock Sit 1 found {vals} in {rowCells}, recorded row & box locks.")
                                 else:
                                     self.subUpdateNotes('row', rowCells, vals)
-                                    # if not self.stuck(tempCopy):
-                                    #     print(f"CheckRowLock Sit 1 found {vals} in {rowCells}, recorded row locks.")
+                                    # if not self.stuck(tempCopy): print(f"CheckRowLock Sit 1 found {vals} in {rowCells}, recorded row locks.")
                         rowCells = list(self.getExRowIdxs((r, c), vals))
                         if 2 <= len(rowCells) and len(rowCells) == size:
-                            for x, y in rowCells:
-                                self.softlinelockedx[x][y] = True
+                            for x, y in rowCells: self.softlinelockedx[x][y] = True
                             if self.inBox(rowCells):
-                                for x, y in rowCells:
-                                    self.softboxlocked[x][y] = True
+                                for x, y in rowCells: self.softboxlocked[x][y] = True
                                 self.subUpdateNotes('row', rowCells, vals)
                                 self.subUpdateNotes('box', rowCells, vals)
-                                # if not self.stuck(tempCopy):
-                                #     print(f"CheckRowLock Sit 2 found {vals} in {rowCells}, recorded row & box locks.")
+                                # if not self.stuck(tempCopy): print(f"CheckRowLock Sit 2 found {vals} in {rowCells}, recorded row & box locks.")
                             else:
                                 self.subUpdateNotes('row', rowCells, vals)
-                                # if not self.stuck(tempCopy):
-                                #     print(f"CheckRowLock Sit 2 found {vals} in {rowCells}, recorded row locks.")
+                                # if not self.stuck(tempCopy): print(f"CheckRowLock Sit 2 found {vals} in {rowCells}, recorded row locks.")
     def checkColLock(self, tempCopy):
         remaining = self.getRemaining()
         for size in range(2, len(remaining)):
@@ -533,40 +614,31 @@ class Puzzle:
                 vals = set(combo)
                 for r in range(9):
                     for c in range(9):
-                        if self.locked[r][c] or self.softlinelockedy[r][c]:
-                            continue
+                        if self.locked[r][c] or self.softlinelockedy[r][c]: continue
                         nodeSet = self.getSet((r, c))
                         if nodeSet == vals:
                             colCells = list(self.getExColIdxs((r, c), vals))
                             if len(colCells) == size:
-                                for x, y in colCells:
-                                    self.softlinelockedy[x][y] = True
+                                for x, y in colCells: self.softlinelockedy[x][y] = True
                                 if self.inBox(colCells):
-                                    for x, y in colCells:
-                                        self.softboxlocked[x][y] = True
+                                    for x, y in colCells: self.softboxlocked[x][y] = True
                                     self.subUpdateNotes('col', colCells, vals)
                                     self.subUpdateNotes('box', colCells, vals)
-                                    # if not self.stuck(tempCopy):
-                                    #     print(f"CheckColLock Sit 1 found {vals} in {colCells}, recorded col & box locks.")
+                                    # if not self.stuck(tempCopy): print(f"CheckColLock Sit 1 found {vals} in {colCells}, recorded col & box locks.")
                                 else:
                                     self.subUpdateNotes('col', colCells, vals)
-                                    # if not self.stuck(tempCopy):
-                                    #     print(f"CheckColLock Sit 1 found {vals} in {colCells}, recorded col locks.")
+                                    # if not self.stuck(tempCopy): print(f"CheckColLock Sit 1 found {vals} in {colCells}, recorded col locks.")
                         colCells = list(self.getExColIdxs((r, c), vals))
                         if 2 <= len(colCells) and len(colCells) == size:
-                            for x, y in colCells:
-                                self.softlinelockedy[x][y] = True
+                            for x, y in colCells: self.softlinelockedy[x][y] = True
                             if self.inBox(colCells):
-                                for x, y in colCells:
-                                    self.softboxlocked[x][y] = True
+                                for x, y in colCells: self.softboxlocked[x][y] = True
                                 self.subUpdateNotes('col', colCells, vals)
                                 self.subUpdateNotes('box', colCells, vals)
-                                # if not self.stuck(tempCopy):
-                                #     print(f"CheckColLock Sit 2 found {vals} in {colCells}, recorded col & box locks.")
+                                # if not self.stuck(tempCopy): print(f"CheckColLock Sit 2 found {vals} in {colCells}, recorded col & box locks.")
                             else:
                                 self.subUpdateNotes('col', colCells, vals)
-                                # if not self.stuck(tempCopy):
-                                #     print(f"CheckColLock Sit 2 found {vals} in {colCells}, recorded col locks.")
+                                # if not self.stuck(tempCopy): print(f"CheckColLock Sit 2 found {vals} in {colCells}, recorded col locks.")
 
     # ********************************************************************************************************************
     # ***********************************************TOUGH STRATEGIES*****************************************************
@@ -574,33 +646,24 @@ class Puzzle:
     def xWing(self, tempCopy):
         for val in self.getRemaining():
             self.squareFind(val, tempCopy)
-            if not self.stuck(tempCopy):
-                return
+            if not self.stuck(tempCopy): return
     def squareFind(self, val, tempCopy):
         for r1 in range(9):
             row1Cells = {c for r, c in self.getAnyRowIdxs((r1, 0), {val})}
-            if len(row1Cells) != 2:
-                continue
+            if len(row1Cells) != 2: continue
             for r2 in range(r1 + 1, 9):
                 row2Cells = {c for r, c in self.getAnyRowIdxs((r2, 0), {val})}
                 if row2Cells == row1Cells:
-                    for c in row1Cells:
-                        self.subUpdateNotes('col', [(r1, c), (r2, c)], {val})
-                    if not self.stuck(tempCopy):
-                        print(f"X-Wing removed {val} in columns {row1Cells}")
-                        return
+                    for c in row1Cells: self.subUpdateNotes('col', [(r1, c), (r2, c)], {val})
+                    if not self.stuck(tempCopy): return print(f"X-Wing removed {val} in columns {row1Cells}")
         for c1 in range(9):
             col1Cells = {r for r, c in self.getAnyColIdxs((0, c1), {val})}
-            if len(col1Cells) != 2:
-                continue
+            if len(col1Cells) != 2: continue
             for c2 in range(c1 + 1, 9):
                 col2Cells = {r for r, c in self.getAnyColIdxs((0, c2), {val})}
                 if col1Cells == col2Cells:
-                    for r in col1Cells:
-                        self.subUpdateNotes('row', [(r, c1), (r, c2)], {val})
-                    if not self.stuck(tempCopy):
-                        print(f"X-Wing removed {val} in rows {col1Cells}")
-                        return
+                    for r in col1Cells: self.subUpdateNotes('row', [(r, c1), (r, c2)], {val})
+                    if not self.stuck(tempCopy): return print(f"X-Wing removed {val} in rows {col1Cells}") 
     # ********************************************************************************************************************
     # Performs chute remote pairs strategy & updates accordingly, "naked" pairs which exist in different rows and columns (within square sight of a node)
     def chuteRemotePairs(self, tempCopy):
@@ -614,33 +677,22 @@ class Puzzle:
                     otherCells = {(r, c) for r in range(rowOffset1, rowOffset1 + 3) for c in range(9) if r not in {a, x} and not (colOffset1 <= c < colOffset1 + 3 or colOffset2 <= c < colOffset2 + 3)}
                     pencilSet, pennedSet = set(), set()
                     for r, c in otherCells:
-                        if self.locked[r][c]:
-                            pennedSet.add(self.layout[r][c].val)
-                        else:
-                            pencilSet |= self.getSet((r, c))
+                        if self.locked[r][c]: pennedSet.add(self.layout[r][c].val)
+                        else: pencilSet |= self.getSet((r, c))
                     remoteIntersection = comboSet & (pencilSet | pennedSet)
                     pencilIntersection = comboSet & pencilSet
                     pennedIntersection = comboSet & pennedSet
                     eNodes = [(x,eCol) for eCol in range(colOffset1, colOffset1 + 3)] + [(a,eCol) for eCol in range(colOffset2, colOffset2 + 3)]
                     if len(pencilSet) == 0 and len(pennedIntersection) == 0:
-                        # if neither value in the remote pair is penned in, then performs double elimination
                         eNodes += [(x, eCol) for eCol in range(colOffset2, colOffset2 + 3) if eCol != y] + [(a, eCol) for eCol in range(colOffset1, colOffset1 + 3) if eCol != b]
                         self.updateNotesDX(eNodes, comboSet)
-                        if not self.stuck(tempCopy):
-                            print(f"Remote Pair (Row) 1: {[(a, b), (x, y)]} removed {comboSet} from {eNodes}")
-                            return
+                        if not self.stuck(tempCopy): return print(f"Remote Pair (Row) 1: {[(a, b), (x, y)]} removed {comboSet} from {eNodes}") 
                     elif len(pennedIntersection) == 1 and len(pencilIntersection) == 0:
-                        # if only one remote pair value is penned in, erases that value from the appropraite nodes
                         self.updateNotesDX(eNodes, pennedIntersection)
-                        if not self.stuck(tempCopy):
-                            print(f"Remote Pair (Row) 2: {[(a, b), (x, y)]} removed {pennedIntersection} from {eNodes}")
-                            return
-                    # otherwise it checks for what values are pencilled in
+                        if not self.stuck(tempCopy): return print(f"Remote Pair (Row) 2: {[(a, b), (x, y)]} removed {pennedIntersection} from {eNodes}")
                     elif len(remoteIntersection) == 1 and len(pencilIntersection) == 1:
                         self.updateNotesDX(eNodes, pencilIntersection)
-                        if not self.stuck(tempCopy):
-                            print(f"Remote Pair (Row) 3: {[(a, b), (x, y)]} removed {pencilIntersection} from {eNodes}")
-                            return
+                        if not self.stuck(tempCopy): return print(f"Remote Pair (Row) 3: {[(a, b), (x, y)]} removed {pencilIntersection} from {eNodes}")
             colPairs = self.getColChuteRemotePairs(comboSet)
             if len(colPairs) != 0:
                 for (a, b), (x, y) in colPairs:
@@ -648,280 +700,215 @@ class Puzzle:
                     otherCells = {(r, c) for r in range(9) for c in range(colOffset1, colOffset1 + 3) if c not in {b, y} and not (rowOffset1 <= r < rowOffset1 + 3 or rowOffset2 <= r < rowOffset2 + 3)}
                     pencilSet, pennedSet = set(), set()
                     for r, c in otherCells:
-                        if self.locked[r][c]:
-                            pennedSet.add(self.layout[r][c].val)
-                        else:
-                            pencilSet |= self.getSet((r, c))
+                        if self.locked[r][c]: pennedSet.add(self.layout[r][c].val)
+                        else: pencilSet |= self.getSet((r, c))
                     remoteIntersection = comboSet & (pencilSet | pennedSet)
                     pencilIntersection = comboSet & pencilSet
                     pennedIntersection = comboSet & pennedSet
                     eNodes = [(eRow, y) for eRow in range(rowOffset1, rowOffset1 + 3)] + [(eRow, b) for eRow in range(rowOffset2, rowOffset2 + 3)]
-                    # if neither value in the remote pair is penned in, then performs double elimination
                     if len(pencilSet) == 0 and len(pennedIntersection) == 0:
                         eNodes += [(eRow, y) for eRow in range(rowOffset2, rowOffset2 + 3) if eRow != x] + [(eRow, b) for eRow in range(rowOffset1, rowOffset1 + 3) if eRow != a]
                         self.updateNotesDX(eNodes, comboSet)
-                        if not self.stuck(tempCopy):
-                            print(f"Remote Pair (Col) 1: {[(a, b), (x, y)]} removed {comboSet} from {eNodes}")
-                            return
-                        # if only one remote pair is penned in, erases that value from the appropraite nodes
+                        if not self.stuck(tempCopy): return print(f"Remote Pair (Col) 1: {[(a, b), (x, y)]} removed {comboSet} from {eNodes}")
                     elif len(pennedIntersection) == 1 and len(pencilIntersection) == 0:
                         self.updateNotesDX(eNodes, pennedIntersection)
-                        if not self.stuck(tempCopy):
-                            print(f"Remote Pair (Col) 3: {[(a, b), (x, y)]} removed {pennedIntersection} from {eNodes}")
-                            return
-                    # otherwise it checks for what values are pencilled in
+                        if not self.stuck(tempCopy): return print(f"Remote Pair (Col) 2: {[(a, b), (x, y)]} removed {pennedIntersection} from {eNodes}")
                     elif len(remoteIntersection) == 1 and len(pencilIntersection) == 1:
                         self.updateNotesDX(eNodes, pencilIntersection)
-                        if not self.stuck(tempCopy):
-                            print(f"Remote Pair (Col) 3: {[(a, b), (x, y)]} removed {pencilIntersection} from {eNodes}")
-                            return
+                        if not self.stuck(tempCopy): return print(f"Remote Pair (Col) 3: {[(a, b), (x, y)]} removed {pencilIntersection} from {eNodes}")
     def getRowChuteRemotePairs(self, combo):
         remotePairs = []
-        for rowBlock in range(0, 9, 3):
-            for i in range(rowBlock, rowBlock + 3):
-                for j in range(9):
-                    if self.locked[i][j]:
-                        continue
-                    tempSet = self.getSet((i, j))
-                    if tempSet != combo:
-                        continue
-                    for a in range(rowBlock, rowBlock + 3):
-                        if a == i:
-                            continue
-                        for b in range(9):
-                            if (j//3) == (b//3) or self.locked[a][b]:
-                                continue
-                            temp = self.getSet((a, b))
-                            if temp == combo and [(a, b), (i, j)] not in remotePairs:
-                                remotePairs.append([(i, j), (a, b)])
+        goodNodes = {(r, c) for r in range(9) for c in range(9) if self.getSet((r, c)) == combo}
+        for n1, n2 in itertools.combinations(goodNodes, 2):
+            if self.sameRowChute(n1, n2): remotePairs.append([n1, n2])
         return remotePairs
     def getColChuteRemotePairs(self, combo):
         remotePairs = []
-        for colBlock in range(0, 9, 3):
-            for j in range(colBlock, colBlock + 3):
-                for i in range(9):
-                    if self.locked[i][j]:
-                        continue
-                    tempSet = self.getSet((i, j))
-                    if tempSet != combo:
-                        continue
-                    for b in range(colBlock, colBlock + 3):
-                        if b == j:
-                            continue
-                        for a in range(9):
-                            if (i // 3) == (a // 3) or self.locked[a][b]:
-                                continue
-                            temp = self.getSet((a, b))
-                            if temp == combo and [(a, b), (i, j)] not in remotePairs:
-                                remotePairs.append([(i, j), (a, b)])
+        goodNodes = {(r, c) for r in range(9) for c in range(9) if self.getSet((r, c)) == combo}
+        for n1, n2 in itertools.combinations(goodNodes, 2):
+            if self.sameColChute(n1, n2): remotePairs.append([n1, n2])
         return remotePairs
     # ********************************************************************************************************************
-    def simpleColoringUtil(self, tempCopy):
+    def simpleColoring(self, tempCopy):
+        remaining = self.getRemaining()
+        allPatterns = dict()
         for val in self.getRemaining():
-            self.simpleColoring(val, tempCopy)
-            if not self.stuck(tempCopy):
-                return
-    def simpleColoring(self, val, tempCopy):
-        nodesDone, completedGroups = [], []
-        for i in range(9):
-            for j in range(9):
-                if not tempCopy.stuck(self):
-                    return
-                if val not in self.layout[i][j].note or (i, j) in nodesDone:
-                    continue
-                fullLoop, newNodes = [[(i, j)]], [(i, j)]
-                nodesDone.append((i, j))
-                while newNodes:
-                    tempLoop = []
-                    for node in newNodes:
-                        temp = self.getConnectedSCNodes(val, node, nodesDone)
-                        tempLoop += temp
-                        nodesDone += temp
-                    if not tempLoop:
+            allConnections = self.getAllSCConnections(val)
+            scPatterns = self.getSCPattern(allConnections)
+            if scPatterns:
+                allPatterns[val] = scPatterns
+        for val, patterns in allPatterns.items():
+            for pattern in patterns:
+                coloredList = []
+                normalized, nonEndNodes = set(), set()
+                color = 'green'
+                for layer in pattern:
+                    color = 'green' if color == 'yellow' else 'yellow'
+                    for node in layer:
+                        coloredList += [(color, node)]
+                        normalized.add(node)
+                        nonEndNodes.add(node)
+                if len(coloredList) <= 3: continue
+                badColor = None
+                for n1, n2 in itertools.combinations(coloredList, 2):
+                    if n1[0] != n2[0]: continue
+                    if self.inRow([n1[1], n2[1]]) or self.inCol([n1[1], n2[1]]) or self.inBox([n1[1], n2[1]]):
+                        badColor = n1[0]
                         break
-                    newNodes = tempLoop
-                    fullLoop.append(tempLoop)
-                if len(fullLoop) > 1:
-                    completedGroups += [fullLoop]
-                # rule 2
-                for group in completedGroups:
-                    colorNodes, colorNodesDict, color, badColor = [], {}, 'yellow', ''
-                    for layer in group:
-                        color = 'green' if color == 'yellow' else 'yellow'
-                        for node in layer:
-                            colorNodes.append((node, color))
-                            colorNodesDict[node] = color
-                    # rule2
-                    if len(colorNodes) <= 2:
-                        continue
-                    for (a, colorA), (b, colorB) in itertools.combinations(colorNodes, 2):
-                        if colorA != colorB:
-                            continue
-                        if self.inBox([a, b]) or self.inRow([a, b]) or self.inCol([a, b]):
-                            badColor = colorA
-                            for node, color in colorNodes:
-                                if color != badColor:
-                                    x, y = node
-                                    print(f"SimpleColoring rule 2 found {val} at index {(x, y)}")
-                                    self.layout[x][y].setVal(val)
-                                    self.singleLockReset((x, y))
-                            if not tempCopy.stuck(self):
-                                return
-                    # rule 4
-                    rawNodes = list(colorNodesDict.keys())
-                    endNodes = [n for n in rawNodes if len(self.getConnectedSCNodes(val, n, [])) == 1]
-                    if len(endNodes) != 2:
-                        continue
-                    n1, n2 = endNodes
-                    if colorNodesDict[n1] == colorNodesDict[n2]:
-                        continue
-                    n1x, n1y = n1
-                    n2x, n2y = n2
-                    # rule 4 sit 1
-                    if not self.sameRowChute(n1, n2) and not self.sameColChute(n1, n2):
-                        otherNodes = [a for a in rawNodes if a not in (n1, n2)]
-                        n1Check = all(not self.inBox([(n1x, n2y), a]) for a in otherNodes)
-                        n2Check = all(not self.inBox([(n2x, n1y), a]) for a in otherNodes)
-                        if n1Check:
-                            self.updateNotesDX([(n1x, n2y)], {val})
-                        if n2Check:
-                            self.updateNotesDX([(n2x, n1y)], {val})
-                        if not self.stuck(tempCopy):
-                            print(f"Simple Coloring rule 4 sit 1 removed {val} from {(n1x, n2y)} and/or {(n2x, n1y)}")
-                            return
-                    # rule 4 sit 2 (rows)
-                    elif self.sameRowChute(n1, n2) and not self.sameColChute(n1, n2) and n1[0] != n2[0]:
-                        eNodes = [(n2x, a) for a in range((n1y//3) * 3, ((n1y//3) * 3) + 3)] + [(n1x, a) for a in range((n2y//3) * 3, ((n2y//3) * 3) + 3)]
-                        self.updateNotesDX(eNodes, {val})
-                        if not self.stuck(tempCopy):
-                            print(f"Simple Coloring rule 4 sit 2 (row) removed {val} from {eNodes}")
-                            return
-                    # rule 4 sit 3 (cols)
-                    elif not self.sameRowChute(n1, n2) and self.sameColChute(n1, n2) and n1[1] != n2[1]:
-                        eNodes = [(a, n2y) for a in range((n1x//3) * 3, ((n1x//3) * 3) + 3)] + [(a, n1y) for a in range((n2x//3) * 3, ((n2x//3) * 3) + 3)]
-                        self.updateNotesDX(eNodes, {val})
-                        if not self.stuck(tempCopy):
-                            print(f"Simple Coloring rule 4 sit 3 (col) removed {val} from {eNodes}")
-                            return
-    def getConnectedSCNodes(self, val, coord, visited):
-        i, j = coord
-        rowOffset, colOffset = self.getOffset(i), self.getOffset(j)
-        connectedNodes, tempDone = [], []
-        for a in range(rowOffset, rowOffset + 3):
-            for b in range(colOffset, colOffset + 3):
-                if (a, b) == (i, j) or (a, b) in visited:
-                    continue
-                if val in self.layout[a][b].note:
-                    if self.singleBoxCheck([(i, j), (a, b)], {val}):
-                        connectedNodes.append((a, b))
-                        tempDone.append((a, b))
-                    else:
-                        break
-        for b in range(9):
-                if b == j or (i, b) in visited or (i, b) in tempDone:
-                    continue
-                if val in self.layout[i][b].note and self.singleRowCheck([(i, j), (i, b)], {val}):
-                    if self.singleRowCheck([(i, j), (i, b)], {val}):
-                        connectedNodes.append((i, b))
-                    else:
-                        break
-        for a in range(9):
-            if a == i or (a, j) in visited or (a, j) in tempDone:
-                continue
-            if val in self.layout[a][j].note:
-                if self.singleColCheck([(i, j), (a, j)], {val}):
-                    connectedNodes.append((a, j))
-                else:
-                    break
-        return connectedNodes
+                if badColor is not None:
+                    for currentColor, node in coloredList:
+                        if currentColor == badColor: continue
+                        x, y = node
+                        print(f"Simple Coloring rule 2 found {val} at index {(x, y)}")
+                        self.layout[x][y].setVal(val, (x, y))
+                    if not tempCopy.stuck(self): return
+                endNodes = []
+                for color, node in coloredList:
+                    total = 0
+                    tempRow = self.getAnyRowIdxs(node, {val})
+                    tempCol = self.getAnyColIdxs(node, {val})
+                    tempBox = self.getAnyBoxIdxs(node, {val}) - tempRow - tempCol
+                    if len(tempRow) == 2 and len((tempRow | tempCol | tempBox) & normalized) == 2: total += 1
+                    if len(tempCol) == 2 and len((tempRow | tempCol | tempBox) & normalized) == 2: total += 1
+                    if len(tempBox) == 2 and len((tempRow | tempCol | tempBox) & normalized) == 2: total += 1
+                    if total == 1:
+                        endNodes += [(color, node)]
+                        nonEndNodes.remove(node)
+                for n1, n2 in itertools.combinations(endNodes, 2):
+                    if n1[0] == n2[0]: continue
+                    a, b = n1[1]
+                    x, y = n2[1]
+                    eNodes = []
+                    if any(self.inBox([(a, b), nx]) or self.inBox([(a, b), nx]) for nx in normalized): continue
+                    if not self.sameRowChute((a, b), (x, y)) and not self.sameColChute((a, b), (x, y)):
+                        eNodes = [(a, y), (x, b)]
+                    elif self.sameRowChute((a, b), (x, y)) and not any(self.sameRowChute((a, b), node) or self.sameRowChute((x, y), node) for node in nonEndNodes):
+                        for colOffset in range(3):
+                            eNodes += [(a, self.getOffset(y) + colOffset), (x, self.getOffset(b) + colOffset)]                            
+                    elif self.sameColChute((a, b), (x, y)) and not any(self.sameColChute((a, b), node) or self.sameColChute((x, y), node) for node in nonEndNodes):
+                        for rowOffset in range(3):
+                            eNodes += [(self.getOffset(a) + rowOffset, y), (self.getOffset(x) + rowOffset, b)]   
+                    if not eNodes: continue
+                    self.updateNotesDX(eNodes, {val})
+                    if not self.stuck(tempCopy):
+                        print("Layers")
+                        for layer in pattern:
+                            print(layer)
+                        print("endNodes", endNodes)
+                        print("nonEndNodes", nonEndNodes)
+                        print("normalized", normalized)
+                        return print(f"Simple Coloring Rule 4 with ends {[(a, b), (x, y)]} removed {val} from {eNodes}")                
+    def getSCPattern(self, allConnections, currentPattern=None, allPatterns=None):
+        if currentPattern is None:
+            currentPattern = []
+        if allPatterns is None:
+            allPatterns = []
+        while allConnections:
+            if not currentPattern:
+                startNode = next(iter(allConnections))
+                currentPattern.append([startNode])
+            tempLayer = set()
+            for node in currentPattern[-1]:
+                neighbors = allConnections.get(node, set())
+                tempLayer.update(neighbors)
+            for node in currentPattern[-1]:
+                if node in allConnections:
+                    del allConnections[node]
+                for other in allConnections:
+                    allConnections[other] -= {node}
+            if not tempLayer:
+                allPatterns.append([list(layer) for layer in currentPattern])
+                currentPattern = []
+            else:
+                currentPattern.append(list(tempLayer))
+        return allPatterns
+    def getAllSCConnections(self, val):
+        connections = {}
+        def add_link(a, b):
+            connections.setdefault(a, set()).add(b)
+            connections.setdefault(b, set()).add(a)
+        for row in range(9):
+            rowIdxs = list(self.getAnyRowIdxs((row, 0), {val}))
+            if len(rowIdxs) == 2:
+                add_link(tuple(rowIdxs[0]), tuple(rowIdxs[1]))
+        for col in range(9):
+            colIdxs = list(self.getAnyColIdxs((0, col), {val}))
+            if len(colIdxs) == 2:
+                add_link(tuple(colIdxs[0]), tuple(colIdxs[1]))
+        for boxR in range(0, 9, 3):
+            for boxC in range(0, 9, 3):
+                boxIdxs = list(self.getAnyBoxIdxs((boxR, boxC), {val}))
+                if len(boxIdxs) == 2:
+                    add_link(tuple(boxIdxs[0]), tuple(boxIdxs[1]))
+        return connections
+
     # ********************************************************************************************************************
     # y wing
     def yWing(self):
         tempCopy = copy.deepcopy(self)
         for i in range(9):
             for j in range(9):
-                if self.layout[i][j].val != 0:
-                    continue
+                if self.locked[i][j]: continue
                 tempSet = self.getSet((i, j))
-                if len(tempSet) != 2:
-                    continue
+                if len(tempSet) != 2: continue
                 rowOffset, colOffset = self.getOffset(i), self.getOffset(j)
                 colWing, rowWing = set(), set()
                 # looks for candidate in column
                 for row in range(9):
-                    if rowOffset <= row < rowOffset + 3 or self.locked[row][j]:
-                        continue
+                    if rowOffset <= row < rowOffset + 3 or self.locked[row][j]: continue
                     temp = self.getSet((row, j))
-                    if len(temp) == 2 and len(temp & tempSet) == 1:
-                        colWing.add((row, j))
+                    if len(temp) == 2 and len(temp & tempSet) == 1: colWing.add((row, j))
                 # looks for candidate in row
                 for col in range(9):
-                    if colOffset <= col < (colOffset + 3) or self.locked[i][col]:
-                        continue
+                    if colOffset <= col < (colOffset + 3) or self.locked[i][col]: continue
                     temp = self.getSet((i, col))
-                    if len(temp) == 2 and len(temp & tempSet) == 1:
-                        rowWing.add((i, col))
+                    if len(temp) == 2 and len(temp & tempSet) == 1: rowWing.add((i, col))
                 if len(rowWing) > 0 and len(colWing) > 0:
                     for rx, ry in rowWing:
                         tempRowSet = self.getSet((rx, ry))
                         for cx, cy in colWing:
                             tempColSet = self.getSet((cx, cy))
-                            if len(tempRowSet | tempColSet | tempSet) != 3 or self.layout[rx][ry].note == self.layout[cx][cy].note:
-                                continue
+                            if len(tempRowSet | tempColSet | tempSet) != 3 or self.layout[rx][ry].note == self.layout[cx][cy].note: continue
                             tempRowSet, tempColSet = self.getSet((rx, ry)), self.getSet((cx, cy))
                             eVal = tempRowSet & tempColSet
-                            if len(eVal) != 1:
-                                continue
+                            if len(eVal) != 1: continue
                             self.updateNotesDX([(cx, ry)], eVal)
                             if not self.stuck(tempCopy):
-                                print(f"Y-Wing Sit 1, Root: {(i, j)}, rowWing {(rx, ry)}, colWing{(cx, cy)}\nErasing {eVal} at {(cx, ry)}")
-                                return
+                                return print(f"Y-Wing Sit 1, Root: {(i, j)}, rowWing {(rx, ry)}, colWing{(cx, cy)}\nErasing {eVal} at {(cx, ry)}")
                 elif len(rowWing) > 0 and len(colWing) == 0:
                     for rx, ry in rowWing:
                         tempRowSet = self.getSet((rx, ry))
                         targetSet = (tempSet | tempRowSet) - (tempSet & tempRowSet)
                         for a in range(rowOffset, rowOffset + 3):
-                            if a == i:
-                                continue
+                            if a == i: continue
                             for b in range(colOffset, colOffset + 3):
-                                if b == j:
-                                    continue
+                                if b == j: continue
                                 tempBoxSet = self.getSet((a, b))
                                 if tempBoxSet == targetSet and len(self.getExRowIdxs((a, b), targetSet)) == 1:
                                     eVal = tempRowSet & tempBoxSet
                                     eCells = set()
-                                    for eCol in range(colOffset, colOffset + 3):
-                                        eCells.add((i, eCol))
-                                    for eCol in range((ry//3) * 3, ((ry//3) * 3) + 3):
-                                        eCells.add((a, eCol))
+                                    for eCol in range(colOffset, colOffset + 3): eCells.add((i, eCol))
+                                    for eCol in range((ry//3) * 3, ((ry//3) * 3) + 3): eCells.add((a, eCol))
                                     eCells = eCells - {(i, j)}
                                     self.updateNotesDX(eCells, eVal)
-                                    if not self.stuck(tempCopy):
-                                        print(f"Y-Wing Sit 2.Row, Root: {(i, j)}, rowWing: {(rx, ry)}, boxNode: {(a, b)}\nRow Erasing {eVal} at {eCells}")
-                                        return
+                                    if not self.stuck(tempCopy): return print(f"Y-Wing Sit 2.Row, Root: {(i, j)}, rowWing: {(rx, ry)}, boxNode: {(a, b)}\nRow Erasing {eVal} at {eCells}")
                 elif len(colWing) > 0 and len(rowWing) == 0:
                     for cx, cy in colWing:
                         tempColSet = self.getSet((cx, cy))
                         targetSet = (tempSet | tempColSet) - (tempSet & tempColSet)
                         for b in range(colOffset, colOffset + 3):
-                            if b == j:
-                                continue
+                            if b == j: continue
                             for a in range(rowOffset, rowOffset + 3):
-                                if a == i:
-                                    continue
+                                if a == i: continue
                                 tempBoxSet = self.getSet((a, b))
                                 if tempBoxSet == targetSet and len(self.getExColIdxs((a, b), targetSet)) == 1:
                                     eVal = tempColSet & tempBoxSet
                                     eCells = set()
-                                    for eRow in range(rowOffset, rowOffset + 3): 
-                                        eCells.add((eRow, j))
-                                    for eRow in range((cx//3) * 3,((cx//3) * 3) + 3):
-                                        eCells.add((eRow, b))
+                                    for eRow in range(rowOffset, rowOffset + 3): eCells.add((eRow, j))
+                                    for eRow in range((cx//3) * 3,((cx//3) * 3) + 3): eCells.add((eRow, b))
                                     eCells = eCells - {(i, j)}
                                     self.updateNotesDX(eCells, eVal)
-                                    if not self.stuck(tempCopy):
-                                        print(f"Y-Wing Sit 2.Col, Root: {(i, j)}, colWing: {(cx, cy)}, boxNode: {(a, b)}\nCol Erasing {eVal} at {eCells}")
-                                        return
+                                    if not self.stuck(tempCopy): return print(f"Y-Wing Sit 2.Col, Root: {(i, j)}, colWing: {(cx, cy)}, boxNode: {(a, b)}\nCol Erasing {eVal} at {eCells}")
     # ********************************************************************************************************************
     # rectangle elimination
     def rectangleElimination(self, tempCopy):
@@ -930,48 +917,34 @@ class Puzzle:
         currentCol = {val: {c: idxs for c in range(9) if (idxs := self.getAnyColIdxs((0, c), {val}))} for val in remaining}
         for val in currentRow:
             for row in currentRow[val]:
-                if len(currentRow[val][row]) != 2 or self.inBox(list(currentRow[val][row])):
-                    continue
+                if len(currentRow[val][row]) != 2 or self.inBox(list(currentRow[val][row])): continue
                 for i, j in currentRow[val][row]:
                     rowNode = set(currentRow[val][row] - {(i, j)}).pop()
-                    if (i, j) not in currentCol[val][j]:# or len(currentCol[val][j]) == 2:
-                        continue
+                    if (i, j) not in currentCol[val][j]: continue
                     for colNode in currentCol[val][j]:
-                        if self.inBox([colNode, (i, j)]) or not self.recCheck(rowNode, colNode, val):
-                            continue
+                        if self.inBox([colNode, (i, j)]) or not self.recCheck(rowNode, colNode, val): continue
                         self.updateNotesDX([colNode], {val})
-                        if not self.stuck(tempCopy):
-                            print(f"Rectangle Elimination (row) removed {val} from {colNode}. Root: {(i, j)}, rowNode: {rowNode}")
-                if not self.stuck(tempCopy):
-                    return
+                        if not self.stuck(tempCopy): print(f"Rectangle Elimination (row) removed {val} from {colNode}. Root: {(i, j)}, rowNode: {rowNode}")
+                if not self.stuck(tempCopy): return
             for col in currentCol[val]:
-                if len(currentCol[val][col]) != 2 or self.inBox(list(currentCol[val][col])):
-                    continue
+                if len(currentCol[val][col]) != 2 or self.inBox(list(currentCol[val][col])): continue
                 for i, j in currentCol[val][col]:
                     colNode = set(currentCol[val][col] - {(i, j)}).pop()
-                    if (i, j) not in currentRow[val][i]:# or len(currentRow[val][i]) == 2:
-                        continue
+                    if (i, j) not in currentRow[val][i]: continue
                     for rowNode in currentRow[val][i]:
-                        if self.inBox([rowNode, (i, j)]) or not self.recCheck(rowNode, colNode, val):
-                            continue
+                        if self.inBox([rowNode, (i, j)]) or not self.recCheck(rowNode, colNode, val): continue
                         self.updateNotesDX([rowNode], {val})
-                        if not self.stuck(tempCopy):
-                            print(f"Rectangle Elimination (col) removed {val} from {rowNode}. Root: {(i, j)}, colNode: {colNode}")
-                if not self.stuck(tempCopy):
-                    return
+                        if not self.stuck(tempCopy): print(f"Rectangle Elimination (col) removed {val} from {rowNode}. Root: {(i, j)}, colNode: {colNode}")
+                if not self.stuck(tempCopy): return
     def recCheck(self, rowNode, colNode, val):
         rowOffset, colOffset = self.getOffset(colNode[0]), self.getOffset(rowNode[1])
         currentBox = self.getAnyBoxIdxs((rowOffset,colOffset), {val})
-        if not currentBox:
-            return False
+        if not currentBox: return False
         for row in range(rowOffset, rowOffset + 3):
-            if row == colNode[0]:
-                continue
+            if row == colNode[0]: continue
             for col in range(colOffset, colOffset + 3):
-                if col == rowNode[1]:
-                    continue
-                if val in self.layout[row][col].note:
-                    return False
+                if col == rowNode[1]: continue
+                if val in self.layout[row][col].note: return False
         return True
     # ********************************************************************************************************************
     # sword fish works the same way as an xwing, except its for triples includes triples
@@ -979,8 +952,7 @@ class Puzzle:
         tempCopy = copy.deepcopy(self)
         for val in self.getRemaining():
             self.swordfish(val, tempCopy)
-            if not self.stuck(tempCopy):
-                return
+            if not self.stuck(tempCopy): return
                 
     def swordfish(self, val, tempCopy):
         # works the same way as xwing
@@ -998,8 +970,7 @@ class Puzzle:
                             ignore_nodes = [(r, c) for r in tempRowSet]
                             self.subUpdateNotes('col', ignore_nodes, {val})
                         if not self.stuck(tempCopy):
-                            print(f"Swordfish on value {val}: rows {sorted(tempRowSet)}, columns {sorted(tempColSet)}")
-                            return
+                            return print(f"Swordfish on value {val}: rows {sorted(tempRowSet)}, columns {sorted(tempColSet)}")
         colSet = {c: {r for r in range(9) if val in self.layout[r][c].note} for c in range(9) if any(val in self.layout[r][c].note for r in range(9))}
         colKeys = [c for c in colSet if 2 <= len(colSet[c]) <= 3]
         for i in range(len(colKeys)):
@@ -1014,8 +985,7 @@ class Puzzle:
                             ignore_nodes = [(r, c) for c in tempColSet]
                             self.subUpdateNotes('row', ignore_nodes, {val})
                         if not self.stuck(tempCopy):
-                            print(f"Swordfish on value {val}: columns {sorted(tempColSet)}, rows {sorted(tempRowSet)}")
-                            return
+                            return print(f"Swordfish on value {val}: columns {sorted(tempColSet)}, rows {sorted(tempRowSet)}")
 
     # ********************************************************************************************************************
     # xyz-wing
@@ -1023,27 +993,21 @@ class Puzzle:
         tempCopy = copy.deepcopy(self)
         for i in range(9):
             for j in range(9):
-                if self.layout[i][j].val != 0:
-                    continue
+                if self.layout[i][j].val != 0: continue
                 tempSet = self.getSet((i, j))
-                if len(tempSet) != 3:
-                    continue
+                if len(tempSet) != 3: continue
                 colWing, rowWing = set(), set()
                 rowOffset, colOffset = self.getOffset(i), self.getOffset(j)
                 # looks for candidate in column
                 for row in range(9):
-                    if row == i or self.locked[row][j]:
-                        continue
+                    if row == i or self.locked[row][j]: continue
                     temp = self.getSet((row, j))
-                    if len(temp) == 2 and len(temp & tempSet) == 2:
-                        colWing.add((row,j))
+                    if len(temp) == 2 and len(temp & tempSet) == 2: colWing.add((row,j))
                 # looks for candidate in row
                 for col in range(9):
-                    if col == j or self.locked[i][col]:
-                        continue
+                    if col == j or self.locked[i][col]: continue
                     temp = self.getSet((i, col))
-                    if len(temp) == 2 and len(temp & tempSet) == 2:
-                        rowWing.add((i,col))
+                    if len(temp) == 2 and len(temp & tempSet) == 2: rowWing.add((i,col))
                 if len(rowWing) > 0 and len(colWing) > 0:
                     for a, b in rowWing:
                         tempRowSet = self.getSet((a, b))
@@ -1051,83 +1015,63 @@ class Puzzle:
                             tempColSet = self.getSet((c, d))
                             if len(tempRowSet | tempColSet | tempSet) == 3 and self.layout[a][b].note != self.layout[c][d].note:
                                 valToErase, eNodes = tempRowSet & tempColSet, set() 
-                                if len(valToErase) != 1:
-                                    continue
+                                if len(valToErase) != 1: continue
                                 val = valToErase.pop()
                                 if self.inBox([(i, j), (a, b)]) and not self.inBox([(i, j), (c, d)]):
                                     eNodes = set()
                                     for eRow in range(rowOffset, rowOffset + 3):
-                                        if eRow == i:
-                                            continue
+                                        if eRow == i: continue
                                         eNodes.add((eRow, j))
                                 elif self.inBox([(i, j), (c, d)]) and not self.inBox([(i, j), (a, b)]):
                                     for eCol in range(colOffset, colOffset + 3):
-                                        if eCol == j:
-                                            continue 
+                                        if eCol == j: continue 
                                         eNodes.add((i, eCol))
                                 self.updateNotesDX(list(eNodes), {val})
-                                if not self.stuck(tempCopy):
-                                    print(f"XYZ-Wing Sit 1 Root: {(i, j)}, rowWing {(a, b)}, colWing{(c, d)}\nErasing {val} at {eNodes}")
-                                    return
+                                if not self.stuck(tempCopy): return print(f"XYZ-Wing Sit 1 Root: {(i, j)}, rowWing {(a, b)}, colWing{(c, d)}\nErasing {val} at {eNodes}")
                 elif len(rowWing) > 0 and len(colWing) == 0:
                     for x, y in rowWing:
-                        if self.inBox([(x, y), (i, j)]):
-                            continue
+                        if self.inBox([(x, y), (i, j)]): continue
                         tempRowSet = self.getSet((x, y))
                         for a in range(rowOffset, rowOffset + 3):
-                            if a == i:
-                                continue
+                            if a == i: continue
                             for b in range(colOffset, colOffset + 3):
-                                if b == j:
-                                    continue
+                                if b == j: continue
                                 tempBoxSet = self.getSet((a, b))
                                 if len(tempBoxSet) == 2 and len(tempBoxSet | tempRowSet | tempSet) == 3 and tempBoxSet != tempRowSet:
                                     eVal, eNodes = (tempRowSet & tempBoxSet).pop(), set()
                                     for eCol in range(colOffset, colOffset + 3):
-                                        if eCol == j:
-                                            continue
+                                        if eCol == j: continue
                                         eNodes.add((i, eCol))
                                     self.updateNotesDX(list(eNodes), {eVal})
-                                    if not self.stuck(tempCopy):
-                                        print(f"XYZ-Wing Sit 2 Row, Root: ({i}, {j}), rowWing {(x, y)}, boxWing {(a, b)}")
-                                        return
+                                    if not self.stuck(tempCopy): return print(f"XYZ-Wing Sit 2 Row, Root: ({i}, {j}), rowWing {(x, y)}, boxWing {(a, b)}")
                 elif len(colWing) > 0 and len(rowWing) == 0:
                     for x, y in colWing:
-                        if self.inBox([(x, y), (i, j)]):
-                            continue
+                        if self.inBox([(x, y), (i, j)]): continue
                         tempColSet = self.getSet((x, y))
                         for a in range(rowOffset, rowOffset + 3):
-                            if a == i:
-                                continue
+                            if a == i: continue
                             for b in range(colOffset, colOffset + 3):
-                                if b == j:
-                                    continue
+                                if b == j: continue
                                 tempBoxSet = self.getSet((a, b))
                                 if len(tempBoxSet) == 2 and len(tempBoxSet | tempColSet | tempSet) == 3 and tempBoxSet != tempColSet:
                                     eVal, eNodes = (tempColSet & tempBoxSet).pop(), set()
                                     for eRow in range(rowOffset, rowOffset + 3):
-                                        if eRow == i:
-                                            continue
+                                        if eRow == i: continue
                                         eNodes.add((eRow, j))
                                     self.updateNotesDX(list(eNodes), {eVal})
-                                    if not self.stuck(tempCopy):
-                                        print(f"XYZ-Wing Sit 2 Col, Root: ({i}, {j}), colWing {(x, y)}, boxWing {(a, b)}")
-                                        return
+                                    if not self.stuck(tempCopy): return print(f"XYZ-Wing Sit 2 Col, Root: ({i}, {j}), colWing {(x, y)}, boxWing {(a, b)}")
     # ********************************************************************************************************************
     def bug(self):
         bugFound = False
         for i in range(9):
             for j in range(9):
-                if self.locked[i][j]:
-                    continue
+                if self.locked[i][j]: continue
                 tempSet = self.getSet((i, j))
-                if len(tempSet) > 3 or (len(tempSet) == 3 and bugFound):
-                    return
+                if len(tempSet) > 3 or (len(tempSet) == 3 and bugFound): return
                 if len(tempSet) == 3 and not bugFound:
                     bugx, bugy = i, j
                     bugFound = True
-        if not bugFound:
-            return
+        if not bugFound: return
         valCount = {val: 0 for val in self.getSet((bugx, bugy))}
         for val in valCount:
             for row in range(9):
@@ -1143,177 +1087,91 @@ class Puzzle:
         for val in valCount:
             if valCount[val] == 9:
                 print(f"BUG found {val} at ({bugx}, {bugy})")
-                self.layout[bugx][bugy].setVal(val)
-                self.singleLockReset((bugx, bugy))
-    # ********************************************************************************************************************
-    # Spots deadly patterns. Unsure if it's a valid strategy because some puzzles actually require deadly patterns to exist in the first place. Currently disabled
-    def avoidableRectangles(self, tempCopy):
-        remaining = self.getRemaining()
-        for val in remaining:
-            for i in range(9):
-                for j in range(9):
-                    if val != self.layout[i][j].val:
-                        continue
-                    rowOffset, colOffset = self.getOffset(i), self.getOffset(j)
-                    for col in range(colOffset, colOffset + 3):
-                        if col == j or not self.locked[i][col]:
-                            continue
-                        for row in range(9):
-                            if rowOffset <= row < rowOffset + 3:
-                                continue
-                            if self.layout[i][col].val == self.layout[row][j].val and len(self.getSet((row, col))) == 2:
-                                self.updateNotesDX([(row, col)], {val})
-                            if not self.stuck(tempCopy):
-                                return print(f"Avoidable Rectangles 2 (in row) removed {val} from {(row, col)} because of pair {(i, j), (i, col)} & node {(row, j)}")
-                    for row in range(rowOffset, rowOffset + 3):
-                        if row == i or not self.locked[row][j]:
-                            continue
-                        for col in range(9):
-                            if colOffset <= col < colOffset + 3:
-                                continue
-                            if self.layout[row][j].val == self.layout[i][col].val and len(self.getSet((row, col))) == 2:
-                                self.updateNotesDX([(row, col)], {val})
-                            if not self.stuck(tempCopy):
-                                return print(f"Avoidable Rectangles 2 (in col) removed {val} from {(row, col)} because of pair {(i, j), (row, j)} & node {(i, col)}")
-        for i in range(9):
-            for j in range(0, 9, 3):
-                rowOffset = self.getOffset(i)
-                valSet1 = {self.layout[i][x].val for x in range(j, j + 3)}
-                if 0 in valSet1 or len(valSet1 & remaining) != 2:
-                    continue
-                for row1 in range(9):
-                    if rowOffset <= row1 < rowOffset + 3:
-                        continue
-                    valSet2 = {self.layout[row1][x].val for x in range(j, j + 3)}
-                    if 0 not in valSet2 or len(valSet1 & valSet2) != 2:
-                        continue
-                    for col in range(j, j + 3):
-                        if self.layout[row1][col].val == 0:
-                            eCol1 = col
-                    rowOffset1 = self.getOffset(row1)
-                    for row2 in range(9):
-                        if rowOffset <= row2 < rowOffset + 3 or rowOffset1 <= row2 < rowOffset1 + 3:
-                            continue
-                        valSet3 = {self.layout[row2][x].val for x in range(j, j + 3)}
-                        if 0 not in valSet3 or (len(valSet3 & valSet1) != 2 and len((valSet3 & valSet2) - {0}) != 1):
-                            continue
-                        for col in range(j, j + 3):
-                            if self.layout[row2][col].val == 0:
-                                eCol2 = col
-                        if eCol1 != eCol2:
-                            self.updateNotesDX([(row1, eCol1), (row2, eCol2)], valSet1)
-                        if not self.stuck(tempCopy):
-                            return print(f"Avoidable Rectangles 3 (inRow) removed {valSet1} from {(row1, eCol1), (row2, eCol2)}")
-        for j in range(9):
-            for i in range(0, 9, 3):
-                colOffset = self.getOffset(j)
-                valSet1 = {self.layout[x][j].val for x in range(i, i + 3)}
-                if 0 in valSet1 or len(valSet1 & remaining) != 2:
-                    continue
-                for col1 in range(9):
-                    if colOffset <= col1 < colOffset + 3:
-                        continue
-                    valSet2 = {self.layout[x][col1].val for x in range(i, i + 3)}
-                    if 0 not in valSet2 or len(valSet1 & valSet2) != 2:
-                        continue
-                    for row in range(i, i + 3):
-                        if self.layout[row][col1].val == 0:
-                            eRow1 = row
-                    colOffset1 = self.getOffset(col1)
-                    for col2 in range(9):
-                        if colOffset <= col2 < colOffset + 3 or colOffset1 <= col2 < colOffset1 + 3:
-                            continue
-                        valSet3 = {self.layout[x][col2].val for x in range(i, i + 3)}
-                        if 0 not in valSet3 or (len(valSet3 & valSet1) != 2 and len((valSet3 & valSet2) - {0}) != 1):
-                            continue
-                        for row in range(i, i + 3):
-                            if self.layout[row][col2].val == 0:
-                                eRow2 = row
-                        if eRow1 != eRow2:
-                            self.updateNotesDX([(eRow1, col1), (eRow2, col2)], valSet1)
-                        if not self.stuck(tempCopy):
-                            return print(f"Avoidable Rectangles 3 (inCol) removed {valSet1} from {(eRow1, col1), (eRow2, col2)}")
+                self.layout[bugx][bugy].setVal(val, (bugx, bugy))
     # ********************************************************************************************************************
     # ***********************************************DIABOLICAL STRATEGIES************************************************
     # ********************************************************************************************************************
-    # Right now I don't think xCycles rules 2 and 3 work. mostly because rule 1 and rectangle elimination keep getting in the way
     def xCycles(self, tempCopy):
         remaining = self.getRemaining()
         functions = {(self.inRow, self.getAnyRowIdxs), (self.inCol, self.getAnyColIdxs), (self.inBox, self.getAnyBoxIdxs)}
         for val in remaining:
-            doneCycles = set()
-            rule2Crits, rule3Crits = [], []
-            for i in range(9):
-                for j in range(9):
-                    if self.locked[i][j] or val not in self.layout[i][j].note:
-                        continue
-                    firstFuncs = {}
-                    for _, func in functions:
-                        if func((i, j), {val}): firstFuncs[func] = func((i, j), {val}) - {(i, j)}
-                    cycles = self.getCycle([(i, j)], val, doneCycles, [], firstFuncs, rule2Crits, rule3Crits)
-                    if not cycles:
-                        continue
-                    for ruleType, cycle in cycles:
-                        eCells = set()
-                        if ruleType == 1:
-                            for x in range(len(cycle) - 1):
-                                for funcType, getFunc in functions:
-                                    if funcType([cycle[x], cycle[x + 1]]):
-                                        eCells |= getFunc(cycle[x], {val}) - {cycle[x], cycle[x + 1]}
-                            if eCells:
-                                self.updateNotesDX(eCells, {val})
-                                if not self.stuck(tempCopy):
-                                    print(f"Cycle: {cycle}\nNice loops Rule 1 removed {val} from {list(eCells)}")
-                        elif ruleType == 2:
-                            solvedNodeX, solvedNodeY = cycle[-3]
-                            self.layout[solvedNodeX][solvedNodeY].setVal(val)
-                            self.singleLockReset((solvedNodeX, solvedNodeY))
-                            print(f"Cycle: {cycle}\nNice loops Rule 2 found {val} at {(solvedNodeX, solvedNodeY)}")
-                        elif ruleType == 3:
-                            solvedNodeX, solvedNodeY = cycle[-2]
-                            self.layout[solvedNodeX][solvedNodeY].note[val-1] = 0
-                            print(f"Cycle: {cycle}\nNice loops Rule 3 removed {val} from {(solvedNodeX, solvedNodeY)}")
-                    if not self.stuck(tempCopy):
-                        return
-                            
-    def getCycle(self, coords, val, doneCycles, allCycles, firstFuncs, rule2Crits, rule3Crits, lastWeak=None):
-        current = coords[-1]
-        strongFuncs = {self.getAnyRowIdxs, self.getAnyColIdxs, self.getAnyBoxIdxs}
-        for strongFunc in strongFuncs - {lastWeak}:
-            strongSet = strongFunc(current, {val}) - {current}
-            weakFuncs = strongFuncs - {strongFunc}
-            if any(otherFunc(current, {val}) - {current} == strongSet for otherFunc in weakFuncs):
-                continue
-            for strongNode in strongSet:
-                for weakFunc in weakFuncs:
-                    weakCandidates = weakFunc(strongNode, {val}) - {strongNode}
-                    for weakNode in weakCandidates:
-                        currentCycle = coords + [strongNode, weakNode]
-                        cycleKey = tuple(sorted(set(currentCycle)))
-                        if cycleKey in doneCycles:
-                            continue
-                        if len(currentCycle) > 3 and weakNode == coords[0] and len(strongSet) == 1 and len(set(currentCycle)) == len(currentCycle) - 1:
-                            allCycles.append((1, coords + [strongNode, weakNode]))
-                            doneCycles.add(cycleKey)
-                        if weakNode != coords[0] and len(strongSet) == 1 and strongNode not in coords:
-                            self.getCycle(currentCycle, val, doneCycles, allCycles, firstFuncs, rule2Crits, rule3Crits, weakFunc)
-        discCycle = coords + [coords[0]]
-        discKey = tuple(sorted(set(discCycle)))
-        if len(coords) > 3 and discKey not in discCycle and coords[-2] not in rule2Crits and current not in rule3Crits:
-            for func, startSet in firstFuncs.items():
-                if current in startSet:
-                    if len(lastWeak(coords[-2], {val})) == 2:
-                        if discKey not in doneCycles:
-                            rule2Crits.append(coords[-2])
-                            allCycles.append((2, discCycle))
-                            doneCycles.add(discKey)
-                        break
-                    if len(lastWeak(coords[-2], {val})) > 2 and len(func(coords[0], {val})) > 2:
-                        if discKey not in doneCycles:
-                            rule3Crits.append(current)
-                            allCycles.append((3, discCycle))
-                            doneCycles.add(discKey)
-        return allCycles
+            strongLinks, weakLinks = self.getAllXCConnectedNodes(val)
+            completedCycles = self.getXCycle(strongLinks, weakLinks)
+            t1eNodes, t2fNodes, t3eNodes = set(), set(), set()
+            for cType, cycle in completedCycles:
+                if cType == 1:
+                    for idx in range(1, len(cycle), 2):
+                        for typeFunc, getFunc in functions:
+                            if typeFunc([cycle[idx], cycle[idx + 1]]):
+                                t1eNodes|= getFunc(cycle[idx], {val}) - {cycle[idx], cycle[idx + 1]}
+                if cType == 2:
+                    t2fNodes.add(cycle[0])
+                if cType == 3:
+                    t3eNodes.add(cycle[-2])
+            t3eNodes -= t1eNodes
+            if t1eNodes:
+                print(f"XCycles Rule 1 removing {val} from: {t1eNodes}")
+                self.updateNotesDX(t1eNodes, {val})
+            if t2fNodes:
+                print(f"XCycles Rule 2 found {val} at node(s): {t2fNodes}")
+                for node in t2fNodes:
+                    self.layout[node[0]][node[1]].setVal(val, node)
+            if t3eNodes:
+                print(f"XCycles Rule 3 removing {val} from: {t3eNodes}")
+                self.updateNotesDX(t3eNodes, {val})
+            if not self.stuck(tempCopy): return    
+                
+    def getXCycle(self, strongLinks, weakLinks):
+        completedCycles = []
+        seen = set()
+        stack = [[node] for node in strongLinks.keys()]
+        
+        while stack:
+            path = stack.pop()
+            last = path[-1]
+            useStrong = (len(path) % 2 == 1)
+            links = strongLinks if useStrong else weakLinks
+            if last not in links: continue
+            path_set = set(path)
+            
+            for nxt in links[last]:
+                if len(path) >= 2 and nxt == path[-2]: continue
+                if nxt in path_set and nxt != path[0]: continue
+                # nlr1, nlr2, nlr3 logic here...
+                stack.append(path + [nxt])
+        
+        completedCycles.sort(key=lambda x: x[0])
+        return completedCycles
+
+    def getAllXCConnectedNodes(self, val):
+        strongLinks, weakLinks = {}, {}
+        
+        def add_link(d, a, b):
+            d.setdefault(a, set()).add(b)
+            d.setdefault(b, set()).add(a)
+    
+        sources = []
+        for row in range(9):
+            sources.append(self.getAnyRowIdxs((row, 0), {val}))
+        for col in range(9):
+            sources.append(self.getAnyColIdxs((0, col), {val}))
+        for rBox in range(0, 9, 3):
+            for cBox in range(0, 9, 3):
+                sources.append(self.getAnyBoxIdxs((rBox, cBox), {val}))
+    
+        for idxs in sources:
+            if not idxs: continue
+            if len(idxs) == 2:
+                a, b = tuple(idxs)
+                add_link(strongLinks, a, b)
+                add_link(weakLinks, a, b)
+            elif len(idxs) > 2:
+                for a, b in combinations(idxs, 2):
+                    if b not in strongLinks.get(a, ()):
+                        add_link(weakLinks, a, b)
+    
+        return strongLinks, weakLinks
+        
     # ********************************************************************************************************************
     def medusa3D(self, tempCopy):
         # print("Welcome to medusa")
@@ -1465,6 +1323,62 @@ class Puzzle:
             # connectedNodes += [(x, y, currentVal, newColor)]
             connectedNodes.append((x, y, currentVal, newColor))
         return connectedNodes
+
+    # def getMedusaConnections(self):
+    #     strongLinks = {}
+    #     remaining = self.getRemaining()
+    #     def add_link(a, aVal, b, bVal):
+    #         strongLinks.setDefault(a, set()).add(b) 
+    #         strongLinks.setDefault(b, set()).add(a)
+    #     for val in remaining:
+    #         for row in range(9):
+    #             rowIdxs = self.getAnyRowIdxs((row, 0), {val})
+    #             if len(rowIdxs) == 2:
+                
+
+    def getAllXCConnectedNodes(self, val):
+        strongLinks, weakLinks = {}, {}
+        def add_link(currentDict, a, b):
+            currentDict.setdefault(a, set()).add(b)
+            currentDict.setdefault(b, set()).add(a)
+        for row in range(9):
+            rowIdxs = self.getAnyRowIdxs((row, 0), {val})
+            if not rowIdxs: continue
+            if len(rowIdxs) == 2: 
+                a, b = tuple(rowIdxs)
+                add_link(strongLinks, a, b)
+                add_link(weakLinks, a, b)
+            elif len(rowIdxs) > 2:
+                for a in rowIdxs:
+                    for b in rowIdxs:
+                        if a != b and b not in strongLinks.get(a, ()):
+                            add_link(weakLinks, a, b)
+        for col in range(9):
+            colIdxs = self.getAnyColIdxs((0, col), {val})
+            if not colIdxs: continue
+            if len(colIdxs) == 2: 
+                a, b = tuple(colIdxs)
+                add_link(strongLinks, a, b)
+                add_link(weakLinks, a, b)
+            elif len(colIdxs) > 2:
+                for a in colIdxs:
+                    for b in colIdxs:
+                        if a != b and b not in strongLinks.get(a, ()):
+                            add_link(weakLinks, a, b)
+        for rBox in range(0, 9, 3):
+            for cBox in range(0, 9, 3):
+                boxIdxs = self.getAnyBoxIdxs((rBox, cBox), {val})
+                if not boxIdxs: continue
+                if len(boxIdxs) == 2:
+                    a, b = tuple(boxIdxs)
+                    add_link(strongLinks, a, b)
+                    add_link(weakLinks, a, b)
+                elif len(boxIdxs) > 2:
+                    for a in boxIdxs:
+                        for b in boxIdxs:
+                            if a != b and b not in strongLinks.get(a, ()):
+                                add_link(weakLinks, a, b)
+        return strongLinks, weakLinks
     # ********************************************************************************************************************
     def jellyFish(self, tempCopy):
         for val in self.getRemaining():
@@ -1512,14 +1426,14 @@ class Puzzle:
             colRP = sorted(self.getColChuteRemotePairs(comboSet))
             for n1, n2 in rowRP: rowRPSets.add((combo, n1, n2))
             for n1, n2 in colRP: colRPSets.add((combo, n1, n2))
-        print("RowSets")
-        if rowSets:
-            for combo, row, col1, col2 in rowSets:
-                print(f"{combo}: {(row, col1)} {(row, col2)}")
-        print("ColSets")
-        if colSets:
-            for combo, col, row1, row2 in colSets:
-                print(f"{combo}: {(row1, col)} {(row2, col)}")
+        # print("RowSets")
+        # if rowSets:
+        #     for combo, row, col1, col2 in rowSets:
+        #         print(f"{combo}: {(row, col1)} {(row, col2)}")
+        # print("ColSets")
+        # if colSets:
+        #     for combo, col, row1, row2 in colSets:
+        #         print(f"{combo}: {(row1, col)} {(row2, col)}")
         for combo, row, col1, col2 in rowSets:
             comboSet = set(combo)
             n1, n2 = (row, col1), (row, col2)
@@ -1698,7 +1612,7 @@ class Puzzle:
                         if self.singleBoxCheck([base, check], {val}):
                             r5Vals[(base, val)][1] += 1
             for (node, critVal), countArry in r5Vals.items():
-                print(node, critVal, countArry)
+                # print(node, critVal, countArry)
                 if countArry[0] == 2 and countArry[1] == 1: 
                     eVal = (comboSet - {critVal}).pop()
                     self.updateNotesDX([node], {eVal})
@@ -1724,318 +1638,453 @@ class Puzzle:
                 if not (temp & ceiling): continue
                 coords.append((rr, cc))
                 master |= temp
-                if len(coords) >= 3 and len(master) == len(coords) - 1:
-                    return True, coords, master
+                if len(coords) >= 3 and len(master) == len(coords) - 1: return True, coords, master
         return False, None, None
-    # ********************************************************************************************************************
-    def tridagonUtil(self):
-        tempCopy = copy.deepcopy(self)
+    # ********************************************************************************************************************    
+    def tridagon(self, tempCopy):
         remaining = self.getRemaining()
+        boxIdxs = [0, 3, 6]
+        rowAdjBoxes, colAdjBoxes = {}, {}
+        for r in boxIdxs:
+            for c in boxIdxs:
+                boxRoot = (r, c)
+                rowAdjBoxes[boxRoot] = self.getRowAdjacentBoxes(boxRoot)
+                colAdjBoxes[boxRoot] = self.getColAdjacentBoxes(boxRoot)
+    
+        boxNodes, pattern, comboRoots, imperfectBoxes = {}, {}, {}, {}
+    
         for combo in itertools.combinations(remaining, 3):
-            self.tridagon(set(combo), tempCopy)
-            if not self.stuck(tempCopy):
-                return
-    def tridagon(self, combo, tempCopy):
-        remaining = self.getRemaining()
-        for combo in itertools.combinations(remaining, 3):
-            for rBox in range(9):
-                if rBox%3 != 0:
-                    continue
-                for cBox in range(9):
-                    if cBox%3 != 0:
-                        continue
-                    rootPattern = self.getAscPattern((rBox, cBox), combo)
-                    if rootPattern is not None and len(rootPattern) >= 3:
-                        if not any(len(set(self.layout[r][c].note) - {0} - set(combo)) > 0 for (r, c) in rootPattern):
-                            # print(f"Ascending {combo} root {(rBox, cBox)}: {rootPattern}")
-                            newBoxes = self.getFullBox((rBox, cBox))
-                            for newSet in newBoxes:
-                                allNodes = []
-                                guardians = {i : set() for i in range(9)}
-                                for x in newSet:
-                                    temp = self.getDscPattern(x, combo)
-                                    if temp is not None:
-                                        allNodes += temp
-                                if len(allNodes) != 9:
-                                    continue
-                                for tempX, tempY in allNodes:
-                                    tempSet = set(self.layout[tempX][tempY].note) - {0} - set(combo)
-                                    if len(tempSet) > 0:
-                                        for x in tempSet:
-                                            guardians[x].add((tempX, tempY))
-                                tempCount = 0
-                                for x in guardians:
-                                    tempCount += len(guardians[x])
-                                if tempCount == 1:
-                                    for x in guardians:
-                                        if len(guardians[x]) == 1:
-                                            current = guardians[x].pop()
-                                            goodVal = set(self.layout[current[0]][current[1]].note) - {0} - set(combo)
-                                            goodVal = goodVal.pop()
-                                            self.layout[current[0]][current[1]].setVal(goodVal, (current[0], current[1]))
-                                            self.singleLockReset((current[0], current[1]))
-                                            print(f"Tritagon ASC found {goodVal} at node {current}")
-                                            return
-                                elif tempCount == 2:
-                                    for x in guardians:
-                                        if len(guardians[x]) != 2 or not self.inBox(list(guardians[x])): 
-                                            continue
-                                        self.subUpdateNotes('box', list(guardians[x]), {x})
-                                        if not self.stuck(tempCopy):
-                                            print(f"Tritagon ASC found 2 gaurdians with {x} at nodes {guardians[x]}")
-                                            return
-                            
-                    rootPattern = self.getDscPattern((rBox, cBox), combo)
-                    if rootPattern is not None and len(rootPattern) >= 3:
-                        if not any(len(set(self.layout[r][c].note) - {0} - set(combo)) > 0 for (r, c) in rootPattern):
-                            newBoxes = self.getFullBox((rBox, cBox))
-                            for newSet in newBoxes:
-                                allNodes = []
-                                guardians = {i : set() for i in range(9)}
-                                for x in newSet:
-                                    temp = self.getAscPattern(x, combo)
-                                    if temp is not None:
-                                        allNodes += temp
-                                if len(allNodes) != 9:
-                                    continue
-                                for tempX, tempY in allNodes:
-                                    tempSet = set(self.layout[tempX][tempY].note) - {0} - set(combo)
-                                    if len(tempSet) > 0:
-                                        for x in tempSet:
-                                            guardians[x].add((tempX, tempY))
-                                tempCount = 0
-                                for x in guardians:
-                                    tempCount += len(guardians[x])
-                                if tempCount == 1:
-                                    for x in guardians:
-                                        if len(guardians[x]) == 1:
-                                            current = guardians[x].pop()
-                                            goodVal = set(self.layout[current[0]][current[1]].note) - {0} - set(combo)
-                                            goodVal = goodVal.pop()
-                                            self.layout[current[0]][current[1]].setVal(goodVal, (current[0], current[1]))
-                                            self.singleLockReset((current[0], current[1]))
-                                            print(f"Tritagon DSC found {goodVal} at node {current}")
-                                            return
-                                elif tempCount == 2:
-                                    for x in guardians:
-                                        if len(guardians[x]) != 2 or not self.inBox(list(guardians[x])):
-                                            continue
-                                        self.subUpdateNotes('box', list(guardians[x]), {x}) 
-                                        if not self.stuck(tempCopy):
-                                            print(f"Tritagon DSC found 2 gaurdians with {x} at nodes {guardians[x]}")
-                                            return
+            comboSet = set(combo)
+            for rBox in boxIdxs:
+                for cBox in boxIdxs:
+                    boxRoot = (rBox, cBox)
+                    tempKey = (boxRoot, tuple(combo))
+                    if tempKey not in boxNodes:
+                        boxNodes[tempKey] = self.getNodes(boxRoot, comboSet)
+                    nodes = boxNodes[tempKey]
+                    if len(nodes) < 3: continue #pruningw
+                    # ASC
+                    ascKey = (boxRoot, tuple(combo), 1)
+                    if ascKey not in pattern:
+                        pattern[ascKey] = self.getAscPattern(boxRoot, comboSet)
+                    ascBox = pattern[ascKey]
+                    if ascBox is not None:
+                        if self.isPerfect(comboSet, ascBox):
+                            comboRoots[combo, boxRoot] = (1, ascBox)
+                        else:
+                            imperfectBoxes[combo, boxRoot] = (1, ascBox)
+                    # DSC
+                    dscKey = (boxRoot, tuple(combo), 0)
+                    if dscKey not in pattern:
+                        pattern[dscKey] = self.getDscPattern(boxRoot, comboSet)
+                    dscBox = pattern[dscKey]
+                    if dscBox is not None:
+                        if self.isPerfect(comboSet, dscBox):
+                            comboRoots[combo, boxRoot] = (0, dscBox)
+                        else:
+                            imperfectBoxes[combo, boxRoot] = (0, dscBox)
+
+        for comboRBox, (typeOf, goodNodes) in comboRoots.items():
+            comboSet = set(comboRBox[0])
+            rootBox = comboRBox[1]
+            goalType = 1 if typeOf == 0 else 0
+            rowBoxes, colBoxes = {}, {}
+    
+            for adjBox in rowAdjBoxes[rootBox]:
+                if (comboRBox[0], adjBox) in comboRoots and comboRoots[comboRBox[0], adjBox][0] == goalType:
+                    rowBoxes[adjBox] = comboRoots[comboRBox[0], adjBox][1]
+            for adjBox in colAdjBoxes[rootBox]:
+                if (comboRBox[0], adjBox) in comboRoots and comboRoots[comboRBox[0], adjBox][0] == goalType:
+                    colBoxes[adjBox] = comboRoots[comboRBox[0], adjBox][1]
+    
+            if not rowBoxes:
+                for adjBox in rowAdjBoxes[rootBox]:
+                    if (comboRBox[0], adjBox) in imperfectBoxes and imperfectBoxes[comboRBox[0], adjBox][0] == goalType:
+                        rowBoxes[adjBox] = imperfectBoxes[comboRBox[0], adjBox][1]
+            if not colBoxes:
+                for adjBox in colAdjBoxes[rootBox]:
+                    if (comboRBox[0], adjBox) in imperfectBoxes and imperfectBoxes[comboRBox[0], adjBox][0] == goalType:
+                        colBoxes[adjBox] = imperfectBoxes[comboRBox[0], adjBox][1]
+    
+            if not (rowBoxes or colBoxes): continue #pruning
+                
+            for rowBox, rowIndexes in rowBoxes.items():
+                for colBox, colIndexes in colBoxes.items():
+                    cornerBox = (colBox[0], rowBox[1])
+                    cornerKey = (cornerBox, tuple(combo), goalType)
+                    if cornerKey not in pattern:
+                        if goalType == 1:
+                            pattern[cornerKey] = self.getAscPattern(cornerBox, comboSet)
+                        else:
+                            pattern[cornerKey] = self.getDscPattern(cornerBox, comboSet)
+                    cornerNodes = pattern[cornerKey]
+                    if cornerNodes is None: continue # pruning
+    
+                    evilBox = []
+                    for nodeSet in [rowIndexes, colIndexes, cornerNodes]:
+                        if not self.isPerfect(comboSet, set(nodeSet)):
+                            evilBox += nodeSet
+                    if len(evilBox) != 3: continue # pruning
+                        
+                    targetNodes = self.getGuardians(comboSet, evilBox)
+                    targetValSet = { (self.getSet(node) - comboSet).pop() for node in targetNodes }
+                    if len(targetValSet) != 1: continue # pruning
+                    targetVal = targetValSet.pop()
                     
+                    if len(targetNodes) == 1:
+                        targetNode = targetNodes.pop()
+                        self.layout[targetNode[0]][targetNode[1]].setVal(targetVal, (targetNode[0], targetNode[1]))
+                        return print(f"Tridagon Type 1 found vals {comboSet}\nRoot {rootBox} RowBox {rowBox}, ColBox {colBox}, & CornerBox {cornerBox}\nFound a bad box with nodes {evilBox} at {targetNode}\nSetting {targetNode} to {targetVal}")
+                    if len(targetNodes) == 2:
+                        self.updateNotesDX(targetNodes, {targetVal})
+                        return print(f"Tridagon Type 2 found vals {comboSet}\nRoot {rootBox} RowBox {rowBox}, ColBox {colBox}, & CornerBox {cornerBox}\nFound a bad box with nodes {evilBox}\nSetting {targetNode} to {targetVal}")
+
+    # def tridagon(self, tempCopy):
+    #     remaining = self.getRemaining()
+    #     boxIdxs = [0, 3, 6]
+    #     rowAdjBoxes, colAdjBoxes = {}, {} #precompiles adjacent boxes
+    #     for r in boxIdxs:
+    #         for c in boxIdxs:
+    #             boxRoot = (r, c)
+    #             rowAdjBoxes[boxRoot] = self.getRowAdjacentBoxes(boxRoot)
+    #             colAdjBoxes[boxRoot] = self.getColAdjacentBoxes(boxRoot)
+                
+    #     boxNodes, pattern, comboRoots, imperfectBoxes = {}, {}, {}, {}
+    #     for combo in itertools.combinations(remaining, 3):
+    #         comboSet = set(combo)
+    #         for rBox in boxIdxs:
+    #             for cBox in boxIdxs:
+    #                 boxRoot = (rBox, cBox)
+    #                 tempKey = (boxRoot, tuple(combo))
+    #                 if tempKey not in boxNodes:
+    #                     boxNodes[tempKey] = self.getNodes(boxRoot, comboSet)
+    #                 nodes = boxNodes[tempKey]
+    #                 if len(nodes) < 3: continue
+                        
+    #                 ascKey = (boxRoot, tuple(combo), 1)
+    #                 if ascKey not in pattern:
+    #                     pattern[ascKey] = self.getAscPattern(boxRoot, comboSet)
+    #                 ascBox = pattern[ascKey]
+    #                 if ascBox is not None:
+    #                     if self.isPerfect(comboSet, ascBox):
+    #                         comboRoots[combo, boxRoot] = (1, ascBox)
+    #                     else:
+    #                         imperfectBoxes[combo, boxRoot] = (1, ascBox)
+                        
+    #                 dscKey = (boxRoot, tuple(combo), 0)
+    #                 if dscKey not in pattern:
+    #                     pattern[dscKey] = self.getDscPattern(boxRoot, comboSet)
+    #                 dscBox = pattern[dscKey]
+    #                 if dscBox is not None:
+    #                     if self.isPerfect(comboSet, dscBox):
+    #                         comboRoots[combo, boxRoot] = (0, dscBox)
+    #                     else:
+    #                         imperfectBoxes[combo, boxRoot] = (0, dscBox)
+                        
+    #     for comboRBox, typeNodes in comboRoots.items():
+    #         comboSet = set(comboRBox[0])
+    #         rootBox = comboRBox[1]
+    #         typeOf, goodNodes = typeNodes
+    #         goalType = 1 if typeOf == 0 else 0
+    #         rowBoxes, colBoxes = {}, {}
+    #         #gets known (perfect) boxes from rowboxes and column boxes
+    #         for adjBox in rowAdjBoxes[rootBox]:
+    #             if (comboRBox[0], adjBox) in comboRoots and comboRoots[comboRBox[0], adjBox][0] == goalType:
+    #                 rowBoxes[adjBox] = comboRoots[comboRBox[0], adjBox][1]
+    #         for adjBox in colAdjBoxes[rootBox]:
+    #             if (comboRBox[0], adjBox) in imperfectBoxes and imperfectBoxes[comboRBox[0], adjBox][0] == goalType:
+    #                 colBoxes[adjBox] = comboRoots[comboRBox[0], adjBox][1]
+    #         if not rowBoxes and not colBoxes: continue #pruning
+
+    #         if not rowBoxes:
+    #             for adjBox in rowAdjBoxes[rootBox]:
+    #                 if (comboRBox[0], adjBox) in imperfectBoxes and imperfectBoxes[comboRBox[0], adjBox][0] == goalType:
+    #                     rowBoxes[adjBox] = imperfectBoxes[comboRBox[0], adjBox][1]
+    #         if not colBoxes:
+    #             for adjBox in colAdjBoxes[rootBox]:
+    #                 if (comboRBox[0], adjBox) in imperfectBoxes and imperfectBoxes[comboRBox[0], adjBox][0] == goalType:
+    #                     colBoxes[adjBox] = imperfectBoxes[comboRBox[0], adjBox][1]
+    #         #gets unknown (imperfect) boxes in row
+    #         # for adjBox in rowAdjBoxes[rootBox]:
+    #         #     if adjBox in rowBoxes: continue
+    #         #     tempKey = (adjBox, tuple(combo), goalType)
+    #         #     if goalType == 1:
+    #         #         if tempKey not in pattern:
+    #         #             pattern[tempKey] = self.getAscPattern(adjBox, comboSet)
+    #         #         newRowBox = pattern[tempKey]
+    #         #     else:
+    #         #         if tempKey not in pattern:
+    #         #             pattern[key] = self.getDscPattern(adjBox, comboSet)
+    #         #         newRowBox = pattern[tempKey]
+    #         #     if newRowBox is None: continue
+    #         #     tempSet = set().union(*(self.getSet(node) for node in newRowBox))
+    #         #     if len(tempSet) <= 4:
+    #         #         rowBoxes[adjBox] = newRowBox
+    #         # #gets unknown (imperfect) boxes in col
+    #         # for adjBox in colAdjBoxes[rootBox]:
+    #         #     if adjBox in colBoxes: continue
+    #         #     tempKey = (adjBox, tuple(combo), goalType)
+    #         #     if goalType == 1:
+    #         #         if tempKey not in pattern:
+    #         #             pattern[tempKey] = self.getAscPattern(adjBox, comboSet)
+    #         #         newColBox = pattern[tempKey]
+    #         #     else:
+    #         #         if tempKey not in pattern:
+    #         #             pattern[tempKey] = self.getDscPattern(adjBox, comboSet)
+    #         #         newColBox = pattern[tempKey]
+    #         #     if newColBox is None: continue
+    #         #     tempSet = set().union(*(self.getSet(node) for node in newColBox))
+    #         #     if len(tempSet) <= 4:
+    #         #         colBoxes[adjBox] = newColBox
+    #         #pruning early
+    #         if not (rowBoxes or colBoxes): continue
+    
+    #         for rowBox, rowIndexes in rowBoxes.items():
+    #             for colBox, colIndexes in colBoxes.items():
+    #                 cornerBox = (colBox[0], rowBox[1])
+    #                 tempKey = (cornerBox, tuple(combo), goalType)
+    #                 #Get corner nodes
+    #                 if goalType == 1:
+    #                     if tempKey not in pattern:
+    #                         pattern[tempKey] = self.getAscPattern(cornerBox, comboSet)
+    #                     cornerNodes = pattern[tempKey]
+    #                 else:
+    #                     if tempKey not in pattern:
+    #                         pattern[tempKey] = self.getDscPattern(cornerBox, comboSet)
+    #                     cornerNodes = pattern[tempKey]
+    #                 #pruning
+    #                 if cornerNodes is None: continue
+    
+    #                 evilBox = []
+    #                 for nodeSet in [rowIndexes, colIndexes, cornerNodes]:
+    #                     if not self.isPerfect(comboSet, set(nodeSet)):
+    #                         evilBox += nodeSet
+    #                 if len(evilBox) != 3: continue
+    
+    #                 targetNodes = self.getGuardians(comboSet, evilBox)
+    #                 targetValSet = { (self.getSet(node) - comboSet).pop() for node in targetNodes }
+    #                 if len(targetValSet) != 1: continue
+    #                 targetVal = targetValSet.pop()
+    
+    #                 if len(targetNodes) == 1:
+    #                     targetNode = targetNodes.pop()
+    #                     self.layout[targetNode[0]][targetNode[1]].setVal(targetVal, (targetNode[0], targetNode[1]))
+    #                     return print(f"Tridagon Type 1 found vals {comboSet}\nRoot {rootBox} RowBox {rowBox}, ColBox {colBox}, & CornerBox {cornerBox}\nFound a bad box with nodes {evilBox} at {targetNode}\nSetting {targetNode} to {targetVal}")
+    #                 if len(targetNodes) == 2:
+    #                     self.updateNotesDX(targetNodes, {targetVal})
+    #                     return print(f"Tridagon Type 2 found vals {comboSet}\nRoot {rootBox} RowBox {rowBox}, ColBox {colBox}, & CornerBox {cornerBox}\nFound a bad box with nodes {evilBox}\nSetting {targetNode} to {targetVal}")
+
+    
     def getNodes(self, boxRoot, combo):
         rowOffset, colOffset = boxRoot
         goodNodes = []
         for row in range(rowOffset, rowOffset + 3):
             for col in range(colOffset, colOffset + 3):
-                tempSet = set(self.layout[row][col].note) - {0}
-                if self.layout[row][col].val == 0 and (tempSet <= set(combo) or set(combo) <= tempSet):
-                    goodNodes.append((row, col))
+                tempSet = self.getSet((row, col))
+                if self.layout[row][col].val == 0 and (combo <= tempSet or tempSet <= combo): goodNodes.append((row, col))
         goodNodes.sort(key=lambda item: (item[1], -item[0]))
         return goodNodes
         
     def getAscPattern(self, boxRoot, combo):
         nodes = self.getNodes(boxRoot, combo)
-        if len(nodes) < 3:
-            return None
+        if len(nodes) < 3: return None
         possibleASCTriples = [{(0, 0), (2, 1), (1, 2)},
                               {(1, 0), (0, 1), (2, 2)},
                               {(0, 2), (1, 1), (2, 0)}]
         for triple in itertools.combinations(nodes, 3):
             normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
-            if normalized in possibleASCTriples:
-                return list(triple)
+            if normalized in possibleASCTriples: return list(triple)
         return None
         
     def getDscPattern(self, boxRoot, combo):
         nodes = self.getNodes(boxRoot, combo)
-        if len(nodes) < 3:
-            return None
+        if len(nodes) < 3: return None
         possibleDSCTriples = [{(0, 0), (1, 1), (2, 2)},
                               {(1, 0), (2, 1), (0, 2)},
                               {(2, 0), (0, 1), (1, 2)}]
         for triple in itertools.combinations(nodes, 3):
             normalized = {(r - boxRoot[0], c - boxRoot[1]) for r, c in triple}
-            if normalized in possibleDSCTriples:
-                return list(triple)
+            if normalized in possibleDSCTriples: return list(triple)
         return None
-
-    def getFullBox(self, boxRoot):
-        rBox, cBox = boxRoot
-        boxes = [0, 3, 6]
-        groups = []
-        for r in boxes:
-            for c in boxes:
-                if r <= rBox <= r + 3 and c <= cBox <= c + 3:
-                    frameR = min(r+3, 6)
-                    frameC = min(c+3, 6)
-                    cornerBoxes = [(r, c), (r, frameC), (frameR, c), (frameR, frameC)]
-                    if boxRoot in cornerBoxes:
-                        cornerBoxes.remove(boxRoot)
-                    groups.append(cornerBoxes)
-        return groups
-    # ********************************************************************************************************************
-    def fireworkUtil(self):
-        tempCopy = copy.deepcopy(self)
-        remaining = self.getRemaining()
-        for combo in itertools.combinations(remaining, 3):
-            self.firework(set(combo), tempCopy)
-            if not self.stuck(tempCopy):
-                return
-        comboPairs = list(itertools.combinations(remaining, 2))
-        comboPairDoubles = list(itertools.permutations(comboPairs, 2))
-        for combo1, combo2 in comboPairDoubles:
-            if len(set(combo1) & set(combo2)) > 0:
-                continue
-            self.quadFirework(set(combo1), set(combo2), tempCopy)
-            if not self.stuck(tempCopy):
-                return
-    def firework(self, combo, tempCopy):
-        for i in range(9):
-            for j in range(9):
-                if self.layout[i][j].val != 0:
-                    continue
-                tempSet = set(self.layout[i][j].note) - {0}
-                if not (combo <= tempSet):
-                    continue
-                rowOffset = (i//3) * 3
-                colOffset = (j//3) * 3
-                inCol = set()
-                outCol = dict()
-                inRow = set()
-                outRow = dict()
-                for col in range(9):
-                    tempSet = set(self.layout[i][col].note) - {0}
-                    if colOffset <= col < colOffset + 3:
-                        if col == j:
-                            continue
-                        inCol = inCol.union(set(tempSet & combo))
-                    else:
-                        if len(tempSet & combo) > 0:
-                            outCol[col] = set(tempSet & combo)
-                            colWing = col
-                if len(outCol) != 1 or outCol[colWing] | inCol != combo:
-                    continue
-                for row in range(9):
-                    tempSet = set(self.layout[row][j].note) - {0}
-                    if rowOffset <= row < rowOffset + 3:
-                        if row == i:
-                            continue
-                        inRow = inRow.union(set(tempSet & combo))
-                    else:
-                        if len(tempSet & combo) > 0:
-                            outRow[row] = set(tempSet & combo)
-                            rowWing = row
-                if len(outRow) != 1 or outRow[rowWing] | inRow != combo:
-                    continue
-                if len(outRow[rowWing]) < 3 and len(outCol[colWing]) < 3 and outRow[rowWing] == outCol[colWing]:
-                    continue
-                for eVal in range(1, 10):
-                    if eVal not in combo:
-                        self.layout[i][j].note[eVal-1] = 0
-                        self.layout[rowWing][j].note[eVal-1] = 0
-                        self.layout[i][colWing].note[eVal-1] = 0
-                if not self.stuck(tempCopy):
-                    print(f"Combo: {combo} Root: {(i, j)}")
-                    print(f"colWing: {(i, colWing)}, inCol: {inCol}, outCol {outCol}")
-                    print(f"rowWing: {(rowWing, j)}, inRow: {inRow}, outRow {outRow}")
-                    if len(combo) == 3:
-                        print("Triple Firework")
-                    return
     
-    def quadFirework(self, combo1, combo2, tempCopy):
-        for i in range(9):
-            for j in range(9):
-                if self.layout[i][j].val != 0:
-                    continue
-                tempSet = set(self.layout[i][j].note) - {0}
-                if not (combo1 <= tempSet):
-                    continue
-                rowOffset1 = (i//3) * 3
-                colOffset1 = (j//3) * 3
-                inCol1 = set()
-                outCol1 = dict()
-                inRow1 = set()
-                outRow1 = dict()
-                for col in range(9):
-                    tempSet = set(self.layout[i][col].note) - {0}
-                    if colOffset1 <= col < colOffset1 + 3:
-                        if col == j:
-                            continue
-                        inCol1 = inCol1.union(set(tempSet & combo1))
-                    else:
-                        if len(tempSet & combo1) == 2:
-                            outCol1[col] = set(tempSet & combo1)
-                            colWing = col
-                if len(outCol1) != 1:
-                    continue
-                for row in range(9):
-                    tempSet = set(self.layout[row][j].note) - {0}
-                    if rowOffset1 <= row < rowOffset1 + 3:
-                        if row == i:
-                            continue
-                        inRow1 = inRow1.union(set(tempSet & combo1))
-                    else:
-                        if len(tempSet & combo1) == 2:
-                            outRow1[row] = set(tempSet & combo1)
-                            rowWing = row
-                if len(outRow1) != 1:
-                    continue
-                # first double firework found, now checking for other double firework
-                tempSet = set(self.layout[rowWing][colWing].note) - {0}
-                if not (combo2 <= tempSet):
-                    continue
-                rowOffset2 = (rowWing//3) * 3
-                colOffset2 = (colWing//3) * 3
-                inCol2 = set()
-                outCol2 = dict()
-                inRow2 = set()
-                outRow2 = dict()
-                for col in range(9):
-                    tempSet = set(self.layout[rowWing][col].note) - {0}
-                    if colOffset2 <= col < colOffset2 + 3:
-                        if col == colWing:
-                            continue
-                        inCol2 = inCol2.union(set(tempSet & combo2))
-                    else:
-                        if len(tempSet & combo2) > 0:
-                            outCol2[col] = set(tempSet & combo2)
-                            colWingCheck = col
-                if len(outCol2) != 1:
-                    continue
-                for row in range(9):
-                    tempSet = set(self.layout[row][colWing].note) - {0}
-                    if rowOffset2 <= row < rowOffset2 + 3:
-                        if row == rowWing:
-                            continue
-                        inRow2 = inRow2.union(set(tempSet & combo2))
-                    else:
-                        if len(tempSet & combo2) > 0:
-                            outRow2[row] = set(tempSet & combo2)
-                            rowWingCheck = row
-                if len(outRow2) != 1:
-                    continue
-                if (i, colWing) != (rowWingCheck, colWing) or (rowWing, j) != (rowWing, colWingCheck):
-                    continue
-                print(f"Combo1: {combo1} Root: {(i, j)}")
-                print(f"colWing: {(i, colWing)}, inCol: {inCol1}, outCol {outCol1}")
-                print(f"rowWing: {(rowWing, j)}, inRow: {inRow1}, outRow {outRow1}")
-                print(f"Combo2: {combo2} Root: {(rowWing, colWing)}")
-                print(f"colWing: {(rowWing, colWingCheck)}, inCol: {inCol2}, outCol {outCol2}")
-                print(f"rowWing: {(rowWingCheck, colWing)}, inRow: {inRow2}, outRow {outRow2}")
-                safeSet = combo1 | combo2
-                for eVal in range(1, 10):
-                    if eVal not in safeSet:
-                        self.layout[i][colWing].note[eVal-1] = 0
-                        self.layout[rowWing][j].note[eVal-1] = 0
-                    if eVal not in combo1:
-                        self.layout[i][j].note[eVal-1] = 0
-                    if eVal not in combo2:
-                        self.layout[rowWing][colWing].note[eVal-1] = 0
-                if not self.stuck(tempCopy):
-                    return
+    def getRowAdjacentBoxes(self, boxRoot):
+        boxes = []
+        for i in range(0, 9, 3):
+            if i != boxRoot[1]: boxes += [(boxRoot[0], i)] # row boxes
+        return boxes
+
+    def getColAdjacentBoxes(self, boxRoot):
+        boxes = []
+        for i in range(0, 9, 3):
+            if i != boxRoot[0]: boxes += [(i, boxRoot[1])] # col boxes
+        return boxes
+    
+    def isPerfect(self, comboSet, nodes):
+        return all(self.getSet(node) <= comboSet for node in nodes)
+
+    def getGuardians(self, comboSet, nodes):
+        return set(node for node in nodes if not(self.getSet(node) <= comboSet))
+    # ********************************************************************************************************************
+    # def fireworkUtil(self):
+    #     tempCopy = copy.deepcopy(self)
+    #     remaining = self.getRemaining()
+    #     for combo in itertools.combinations(remaining, 3):
+    #         self.tripleFirework(set(combo), tempCopy)
+    #         if not self.stuck(tempCopy):
+    #             return
+    #     comboPairs = list(itertools.combinations(remaining, 2))
+    #     comboPairDoubles = list(itertools.permutations(comboPairs, 2))
+    #     for combo1, combo2 in comboPairDoubles:
+    #         if len(set(combo1) & set(combo2)) > 0:
+    #             continue
+    #         self.quadFirework(set(combo1), set(combo2), tempCopy)
+    #         if not self.stuck(tempCopy):
+    #             return
+    # def tripleFirework(self, combo, tempCopy):
+    #     nonCombo = {1,2,3,4,5,6,7,8,9} - combo
+    #     for i in range(9):
+    #         for j in range(9):
+    #             if self.layout[i][j].val != 0: continue
+    #             tempSet = self.getSet((i, j))
+    #             if not (combo <= tempSet): continue
+    #             rowOffset, colOffset = self.getOffset(i), self.getOffset(j)
+    #             inRow, inCol, outRow, outCol = set(), set(), dict(), dict()
+    #             rowSet, colSet, outSet = set(), set(), set()
+    #             badSet = False
+    #             boxNodes = set((i, j))
+    #             for tempRow in range(rowOffset, rowOffset + 3): boxNodes.add((tempRow, j))
+    #             for tempCol in range(colOffset, colOffset + 3): boxNodes.add((i, tempCol))
+    #             for tempVal in combo:
+    #                 if len(self.getAnyRowIdxs([(i, j)], {val}) - boxNodes) != 1 or len(self.getAnyColIdxs([(i, j)], {val}) - boxNodes) !+ 1: badSet = True
+    #             if badSet: continue
+    #             for extra in range(9):
+    #                 if not self.inBox([(i, j), (extra, j)]):
+    #                     tempSet = self.getSet((extra, j))
+    #                     if self.locked[extra][j]: colSet.add(self.layout[extra][j].val)
+    #                     elif len(tempSet & combo) == 2
+    #                         colSet |= self.getSet((extra, j))
+    #                 if not self.inBox([(i, j), (i, extra)]): 
+    #             for col in range(9):
+    #                 tempSet = self.getSet((i, col))
+    #                 if colOffset <= col < colOffset + 3: continue
+    #                 if self.locked[i][col]:
+    #                 elif len(tempSet & combo) >= 2: 
+                        
+    #             for col in range(9):
+    #                 tempSet = self.getSet((i, col))
+    #                 if colOffset <= col < colOffset + 3:
+    #                     if col == j: continue
+    #                     inCol = inCol.union(tempSet & combo)
+    #                 elif len(tempSet & combo) > 0: outCol[col], colWing = tempSet & combo, (i, col)
+    #             if len(outCol) != 1 or outCol[colWing] | inCol != combo: continue
+    #             for row in range(9):
+    #                 tempSet = self.getSet((row, j))
+    #                 if rowOffset <= row < rowOffset + 3:
+    #                     if row == i: continue
+    #                     inRow = inRow.union(tempSet & combo)
+    #                 else:
+    #                     if len(tempSet & combo) > 0: outRow[row], rowWing = tempSet & combo, (row, j)
+    #             if len(outRow) != 1 or outRow[rowWing] | inRow != combo: continue
+    #             if len(outRow[rowWing]) < 3 and len(outCol[colWing]) < 3 and outRow[rowWing] == outCol[colWing]:  continue
+    #             self.updateNotesDX([(i, j), rowWing, colWing], (self.getRemaining() - combo))
+    #             if not self.stuck(tempCopy):
+    #                 print(f"Triple Firework found locked combo {combo} in {(i, j)}, {rowWing}, & {colWing}\nRemoving non column values from these 3 nodes.")
+    #                 # print(f"Combo: {combo} Root: {(i, j)}")
+    #                 # print(f"colWing: {(i, colWing)}, inCol: {inCol}, outCol {outCol}")
+    #                 # print(f"rowWing: {(rowWing, j)}, inRow: {inRow}, outRow {outRow}")
+    #                 return
+    
+    # def quadFirework(self, combo1, combo2, tempCopy):
+    #     for i in range(9):
+    #         for j in range(9):
+    #             if self.layout[i][j].val != 0:
+    #                 continue
+    #             tempSet = set(self.layout[i][j].note) - {0}
+    #             if not (combo1 <= tempSet):
+    #                 continue
+    #             rowOffset1 = (i//3) * 3
+    #             colOffset1 = (j//3) * 3
+    #             inCol1 = set()
+    #             outCol1 = dict()
+    #             inRow1 = set()
+    #             outRow1 = dict()
+    #             for col in range(9):
+    #                 tempSet = set(self.layout[i][col].note) - {0}
+    #                 if colOffset1 <= col < colOffset1 + 3:
+    #                     if col == j:
+    #                         continue
+    #                     inCol1 = inCol1.union(set(tempSet & combo1))
+    #                 else:
+    #                     if len(tempSet & combo1) == 2:
+    #                         outCol1[col] = set(tempSet & combo1)
+    #                         colWing = col
+    #             if len(outCol1) != 1:
+    #                 continue
+    #             for row in range(9):
+    #                 tempSet = set(self.layout[row][j].note) - {0}
+    #                 if rowOffset1 <= row < rowOffset1 + 3:
+    #                     if row == i:
+    #                         continue
+    #                     inRow1 = inRow1.union(set(tempSet & combo1))
+    #                 else:
+    #                     if len(tempSet & combo1) == 2:
+    #                         outRow1[row] = set(tempSet & combo1)
+    #                         rowWing = row
+    #             if len(outRow1) != 1:
+    #                 continue
+    #             # first double firework found, now checking for other double firework
+    #             tempSet = set(self.layout[rowWing][colWing].note) - {0}
+    #             if not (combo2 <= tempSet):
+    #                 continue
+    #             rowOffset2 = (rowWing//3) * 3
+    #             colOffset2 = (colWing//3) * 3
+    #             inCol2 = set()
+    #             outCol2 = dict()
+    #             inRow2 = set()
+    #             outRow2 = dict()
+    #             for col in range(9):
+    #                 tempSet = set(self.layout[rowWing][col].note) - {0}
+    #                 if colOffset2 <= col < colOffset2 + 3:
+    #                     if col == colWing:
+    #                         continue
+    #                     inCol2 = inCol2.union(set(tempSet & combo2))
+    #                 else:
+    #                     if len(tempSet & combo2) > 0:
+    #                         outCol2[col] = set(tempSet & combo2)
+    #                         colWingCheck = col
+    #             if len(outCol2) != 1:
+    #                 continue
+    #             for row in range(9):
+    #                 tempSet = set(self.layout[row][colWing].note) - {0}
+    #                 if rowOffset2 <= row < rowOffset2 + 3:
+    #                     if row == rowWing:
+    #                         continue
+    #                     inRow2 = inRow2.union(set(tempSet & combo2))
+    #                 else:
+    #                     if len(tempSet & combo2) > 0:
+    #                         outRow2[row] = set(tempSet & combo2)
+    #                         rowWingCheck = row
+    #             if len(outRow2) != 1:
+    #                 continue
+    #             if (i, colWing) != (rowWingCheck, colWing) or (rowWing, j) != (rowWing, colWingCheck):
+    #                 continue
+    #             print(f"Combo1: {combo1} Root: {(i, j)}")
+    #             print(f"colWing: {(i, colWing)}, inCol: {inCol1}, outCol {outCol1}")
+    #             print(f"rowWing: {(rowWing, j)}, inRow: {inRow1}, outRow {outRow1}")
+    #             print(f"Combo2: {combo2} Root: {(rowWing, colWing)}")
+    #             print(f"colWing: {(rowWing, colWingCheck)}, inCol: {inCol2}, outCol {outCol2}")
+    #             print(f"rowWing: {(rowWingCheck, colWing)}, inRow: {inRow2}, outRow {outRow2}")
+    #             safeSet = combo1 | combo2
+    #             for eVal in range(1, 10):
+    #                 if eVal not in safeSet:
+    #                     self.layout[i][colWing].note[eVal-1] = 0
+    #                     self.layout[rowWing][j].note[eVal-1] = 0
+    #                 if eVal not in combo1:
+    #                     self.layout[i][j].note[eVal-1] = 0
+    #                 if eVal not in combo2:
+    #                     self.layout[rowWing][colWing].note[eVal-1] = 0
+    #             if not self.stuck(tempCopy):
+    #                 return
                 
     # ********************************************************************************************************************
     def twinXYChains(self):
@@ -2326,13 +2375,13 @@ class Puzzle:
                             continue
         return squares
     # ********************************************************************************************************************
-    def extUniqueRectanglesUtil(self):
-        tempCopy = copy.deepcopy(self)
-        remaining = self.getRemaining()
-        for combo in itertools.combinations(self.getRemaining(), 3):
-            self.extUniqueRectangles(set(combo), tempCopy)
-            if not self.stuck(tempCopy):
-                return
+    # def extUniqueRectanglesUtil(self):
+    #     tempCopy = copy.deepcopy(self)
+    #     remaining = self.getRemaining()
+    #     for combo in itertools.combinations(self.getRemaining(), 3):
+    #         self.extUniqueRectangles(set(combo), tempCopy)
+    #         if not self.stuck(tempCopy):
+    #             return
     def extUniqueRectangles(self, combo, tempCopy):
         rowSets = set()
         colSets = set()

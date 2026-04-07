@@ -1,0 +1,57 @@
+Phils Folly Links:
+https://www.philsfolly.net.au/Sudoku/tridagon_help.htm
+https://www.philsfolly.net.au/Sudoku/loops_help.htm
+https://www.philsfolly.net.au/Sudoku/pom_help.htm
+
+017060240240103076506427091790602080152000764860705020470006012620901437001274650
+
+orig length: 4085
+
+Optimized simple coloring by a factor of 10, and removed >10 lines (baller)
+
+
+tridagonT1N2 Simple Coloring (passing through)
+Old Version (1st passing): 0.010628200001519872
+New Version (1st passing): 0.0010771000015665777
+New Version (2nd passing): 0.0006548999990627635
+
+
+tridagonT1N2 Tridagon:
+Old Version: 0.0018949999976030085 (prunes early, this is a bad example problem)
+New Version: 0.0040985999985423405
+GPT Version: 0.002416100000118604
+
+tridagonT1N3 Tridagon: 
+Old Version: 0.0070776000029582065
+New Version: 0.006225699999049539
+GPT Version: 0.003773299999011215
+Final (gpt plus my improvments: 0.0033780999983719084
+
+
+Xcycles: after rework it performs about 2x faster, but has different results, but with the same endpoints
+
+tridagonT1N2 XCycles (passing, new version solves with 2 good xcycles):
+Old Version (1st passing): 0.03370390000054613
+New Version (1st): 0.0002982000005431473
+New Version (2nd): 0.0006059999996068655
+
+xCyclesR1N1 XCycles:
+Old Version (1st Good): 0.004593399997247616
+Old Version (2nd Good): 0.0046987999994598795
+Old Version (3rd Good): 0.012199900000268826
+New Version (1st Good): 0.000714099998731399
+New Version (2nd Good): 0.000988899999356363
+New Version (bad passing): 0.02199180000025080
+
+xCyclesR1N2 XCycles:
+Old Version: 0.012400299998262199
+New Version:
+
+xCyclesR2N1 XCycles:
+Old Version: 0.0031314000007114373
+New Version:
+
+xCyclesR3N1 XCycles (DISABLE RECT ELIM):
+Old Version (1st Good): 0.0010241999989375472
+Old Version (2nd Good): 0.013657499999681022
+New Version:
