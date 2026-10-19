@@ -2,13 +2,42 @@
 Sudoku solver that solves using human strategies
 Sudokus are a "Constraint Satisfaction Problem", the most common algorithm for solving these uses Backtracking Search. This is NOT a Backtracking Search algorithm.
 This program uses human strategies for note eliminations or solving values. The strategies are from https://www.sudokuwiki.org/strategy_families. 
-This was performed in jupyterLab using python. 
-First I created a basic framework of the program, the node object has an int value of 0 - 9 (0 representing unfilled) and a list of potential or noted in values 0 - 9, when a value is impossible for a node, that value will be replaced with 0. It also has a reference to the problem object.
-The Puzzle object has a 9x9 grid of node objects, and boolean 9x9 grids that represent naked pairs found in boxes, rows, and columns. 
-So far I have sucessfully implemented all of the "basic" strategies
+This coded in jupyterLab using python, but I recently made the move to VS Code.
+
+#Implemented strategies
+- X-Wing
+- Chute Remote Pairs
+- Simple Coloring
+- W-Wing
+- Y-Wing
+- Rectangle Elimination
+- Swordfish
+- XYZ-Wing
+- X-Cycles
+- 3D Medusa
+- Jellyfish
+- Unique Rectangles
+- Tridagon
+- Fireworks
+- Twin XY-Chains
+- SK-Loops
+- Extended Unique Rectangles
+- Hidden Unique Rectangles
 
 # Changes made:
-Heavy optimizations for every single function up to and including "Unique Rectangles". So far with my optimizations I have removed 1400 lines of code, which means that my initial code was pretty garbage. Another large change that I made was the implementation of "Utility" functions with are simple functions that perform the same actions among many strategies. One change I made to the usage of the algorithm is the implementation of in-line representation of sudoku problems. Check the www.sudokuwiki.org for cool examples and specific strategy usage. Another smaller change in the usage was to implementing a simple backtracking search algorithm to brute-force solve the puzzle. There are 2 reasons for this, the first reason is so that I have the solution to compare the current state of the puzzle to determine if it has solved correctly or if any strategies perfomed created critical errors, the second reason is to ensure that the puzzle is a true sudoku, meaning it has a single solution. If there are multiple solutions to a problem, then the algorithm is pretty much guaranteed to make a mistake other than sheer luck fringe cases where it solves correctly. Some strategies like y-wing have countermeasures for this but I know that other strategies will not.
+The largest change is that now this is a branching algorithm. It now will find every possible solving order for each possible strategy implemented (see list below). 
+Alongside this, heavy optimization for many strategy functions.
+Some minor changes to how the strategy functions work, creates a list of new puzzle objects to be returned whenever a change gets made plus some extra checks that are now inert and should be ignored.
+
+# Notes for Branching algorithm:
+There were a couple of things that I tried and failed to do when making this a branching algorithm. There's artifacts of it in the code but for the most part I made them inert.
+- **1. Pruning:** I created a sort of pruning checker "uberPrune" for when the branches get out of control, but I left it sort of unfinished. The idea is that if a strategy leaves a puzzle in a solvable state (regarding basic elimination using naked and hidden groups), it will log that change, and ignore strategies that make that EXACT change. 3D medusa really blows up the tree and this was made to combat it. It gets passed into the solve function, and to every subsequent strategy function (in hindsight I should have just made it part of the sudoku object itself or made it global). But lately I've been setting it to not prune (0) at all so I can stress test the whole program, but also because I cannot confirm if it's functioning the way I want it to. 
+- **2. Tree Display:** This was a disappointing investment of my time. I tried to create a display tree for all possible solution paths, but because of adding more and more strategies (especially 3D medusa), it made it incomprehensible. There's some tree organization stuff at the bottom of the solve function that I'm too afraid to remove, maybe some remnants of tree stuff in the main that's commented out, and some stuff that got changed if you print the puzzle's report. I'll probably come back to this once I figure out the pruning and tree restructuring.
 
 # Notes for Usage:
-You will probably have to go in and uncomment some of the functions in the strategies section of the code, all strategies up until fireworks have been coded and proved to function properly.
+In the code's current state, it just solves the function without telling you what it's doing, but I do know that it's working. To use it, set "currentPuzzle" (in the 2nd box) to the string representation of your puzzle. To see results of any of the solves, pick the index of a "good solution" and paste said index into the 3rd box's "goodSolvePile[X].displayFullReport()". 
+
+# Future work
+- Currently I'm working on a sudoku generator algorithm that uses custom strategy & difficulty inputs. Still a very early work in progress.
+- GUI for inputting sudokus.
+- Web application for puzzle generation and solving sudokus.
